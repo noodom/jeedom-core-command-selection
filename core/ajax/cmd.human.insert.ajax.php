@@ -1,5 +1,4 @@
 <?php
-
 /* This file is part of Jeedom.
  *
  * Jeedom is free software: you can redistribute it and/or modify
@@ -26,16 +25,25 @@ try {
 
     ajax::init();
     $action = init('action');
-
+    
     if ($action == 'search') {
         $query = trim(init('query'));
         $type = trim(init('type'));
         $subType = trim(init('subType'));
         $limit = intval(init('limit'));
         $limit = $limit <= 0 ? 100 : min($limit, 500);
-
         $result = [];
         $queryLower = mb_strtolower($query, 'UTF-8');
+
+        $eqLogicsById = [];
+        foreach (eqLogic::all() as $eq) {
+            $eqLogicsById[$eq->getId()] = $eq;
+        }
+
+        $objectsById = [];
+        foreach (jeeObject::all() as $obj) {
+            $objectsById[$obj->getId()] = $obj;
+        }
 
         foreach (cmd::all() as $cmd) {
             if (!is_object($cmd)) {
@@ -50,25 +58,22 @@ try {
                 continue;
             }
 
-            $id = (string) $cmd->getId();
-            $name = (string) $cmd->getName();
-            $eqLogic = $cmd->getEqLogic();
-
-            if (!is_object($eqLogic)) {
+            $eqLogic = $eqLogicsById[$cmd->getEqLogic_id()] ?? null;
+            if ($eqLogic === null) {
                 continue;
             }
 
-            $object = $eqLogic->getObject();
-            $objectName = is_object($object) ? (string) $object->getName() : '{{Sans Objet}}';
+            $id = (string) $cmd->getId();
+            $name = (string) $cmd->getName();
+            $object = $objectsById[$eqLogic->getObject_id()] ?? null;
+            $objectName = $object !== null ? (string) $object->getName() : __('Aucun', __FILE__);
             $eqLogicName = (string) $eqLogic->getName();
             $humanName = '[' . $objectName . '][' . $eqLogicName . '][' . $name . ']';
 
             if ($query !== '') {
                 $idMatch = $id === $query;
-                $nameMatch = mb_strpos(mb_strtolower($name, 'UTF-8'), $queryLower) !== false;
                 $humanMatch = mb_strpos(mb_strtolower($humanName, 'UTF-8'), $queryLower) !== false;
-
-                if (!$idMatch && !$nameMatch && !$humanMatch) {
+                if (!$idMatch && !$humanMatch) {
                     continue;
                 }
             }
@@ -79,27 +84,28 @@ try {
                 'humanName' => $humanName,
                 'type' => (string) $cmd->getType(),
                 'subType' => (string) $cmd->getSubType(),
-                'object_id' => is_object($object) ? (string) $object->getId() : '',
+                'object_id' => $object !== null ? (string) $object->getId() : '',
                 'object_name' => $objectName,
                 'eqLogic_id' => (string) $eqLogic->getId(),
                 'eqLogic_name' => $eqLogicName
             ];
 
-            if (count($result) >= $limit) {
+            if (count($result) >= $limit + 1) {
                 break;
             }
+        }
+
+        $hasMore = count($result) > $limit;
+        if ($hasMore) {
+            $result = array_slice($result, 0, $limit);
+            $result[] = ['truncated' => true];
         }
 
         ajax::success($result);
     }
 
     if ($action == 'getEqLogicsWithoutObject') {
-        if (!isConnect()) {
-            throw new Exception('{{401 - Accès non autorisé}}');
-        }
-
         $result = [];
-
         foreach (eqLogic::all() as $eqLogic) {
             if ($eqLogic->getObject_id() === null) {
                 $result[] = [

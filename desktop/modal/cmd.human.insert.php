@@ -270,6 +270,31 @@ if (!isConnect()) {
     font-size: 10px;
 }
 
+.miller-item.miller-item-exact {
+    border-left: 3px solid var(--miller-primary);
+}
+
+.miller-match {
+    padding: 0 1px;
+    border-radius: 2px;
+    background: rgba(240, 173, 78, 0.35);
+    color: inherit;
+    font-weight: 700;
+}
+
+.miller-exact-badge {
+    flex-shrink: 0;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: var(--miller-primary);
+    color: #fff;
+    font-size: 9px;
+    font-weight: bold;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
 .miller-empty,
 .miller-error {
     padding: 12px;
@@ -282,6 +307,17 @@ if (!isConnect()) {
 
 .miller-error {
     color: var(--miller-danger);
+}
+
+.miller-search-truncated {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--miller-border-light);
+    background: var(--miller-bg-secondary);
+    color: var(--miller-text-muted);
+    font-size: 11px;
+    font-style: italic;
+    text-align: center;
 }
 
 .miller-item-subtype {
@@ -324,6 +360,7 @@ if (!isConnect()) {
                 <span class="miller-col-title">{{Commandes}}</span>
                 <input type="text" class="miller-col-filter" id="filter_miller_commands" placeholder="{{Filtrer...}}" autocomplete="off">
             </div>
+            <div class="miller-search-truncated" id="div_miller_search_truncated" style="display: none;"></div>
             <div class="miller-col-content" id="list_miller_commands"></div>
         </div>
     </div>
@@ -335,6 +372,7 @@ if (!isConnect()) {
 
     const SEARCH_MIN_LENGTH = 2;
     const SEARCH_DEBOUNCE_MS = 300;
+    const FULL_HUMAN_NAME_RE = /^#\[([^[\]#]*)\]\[([^[\]#]*)\]\[([^[\]#]*)\]#$/;
 
     function alphaCompare(a, b) {
         return String(a || '').localeCompare(String(b || ''), 'fr', { sensitivity: 'base', numeric: true });
@@ -367,6 +405,7 @@ if (!isConnect()) {
     const objectFilterInput = document.getElementById('filter_miller_objects');
     const equipmentFilterInput = document.getElementById('filter_miller_equipments');
     const commandFilterInput = document.getElementById('filter_miller_commands');
+    const searchTruncatedNote = document.getElementById('div_miller_search_truncated');
     const selectionSummary = document.getElementById('div_miller_selection_summary');
 
     let selectedObjectId = null;
@@ -376,6 +415,9 @@ if (!isConnect()) {
     let currentEqLogics = [];
     let currentCommands = [];
     let currentSearchResults = [];
+    let searchHasMore = false;
+    let pastedExactHumanName = null;
+    let lastSearchQuery = '';
     let isSearchMode = false;
     let isInitialLoad = true;
     let objectFilterText = '';
@@ -383,6 +425,33 @@ if (!isConnect()) {
     let commandFilterText = '';
 
     const objectSelectHtml = <?php echo json_encode(jeeObject::getUISelectList()); ?>;
+    const objectOptions = (function() {
+        const select = document.createElement('select');
+        select.innerHTML = objectSelectHtml;
+        return Array.from(select.options)
+            .map(option => ({ id: String(option.value || ''), name: option.textContent.trim() }))
+            .sort((a, b) => alphaCompare(a.name, b.name));
+    })();
+
+    const objectsById = new Map(objectOptions.map(o => [o.id, o]));
+    const escapeDiv = document.createElement('div');
+
+    const CMD_ICONS = {
+        info: {
+            numeric: 'fa-tachometer-alt',
+            binary: 'fa-toggle-on',
+            string: 'fa-font',
+            other: 'fa-info-circle'
+        },
+        action: {
+            message: 'fa-comment',
+            slider: 'fa-sliders-h',
+            color: 'fa-palette',
+            select: 'fa-list',
+            toggle: 'fa-toggle-on',
+            other: 'fa-bolt'
+        }
+    };
 
     mod_insertCmd.setOptions = function(_options) {
         mod_insertCmd.options = _options || {};
@@ -462,28 +531,55 @@ if (!isConnect()) {
         } else if (typeof cmdHumanInsertCallBack === 'function') {
             cmdHumanInsertCallBack(formattedCmd);
         } else {
-            const targetInput = $('#div_cmdHumanInsert').data('input');
-            if (targetInput) {
-                $(targetInput).atCaret('insert', formattedCmd);
+            const targetInput = container.targetInput
+                || (container.dataset.input ? document.querySelector(container.dataset.input) : null);
+
+            if (targetInput && typeof targetInput.insertAtCursor === 'function') {
+                targetInput.insertAtCursor(formattedCmd);
             }
         }
 
-        $('#md_modal').modal('hide');
+        container.closest('.jeeDialog')?._jeeDialog?.close();
     };
+
+    function selectObject(objectId) {
+        const isNone = objectId === '';
+
+        selectedObjectId = objectId;
+        selectedEqLogicId = null;
+        mod_insertCmd.selectedCmd = null;
+        equipmentFilterText = '';
+        commandFilterText = '';
+
+        [equipmentFilterInput, commandFilterInput].forEach(input => {
+            if (input) {
+                input.value = '';
+            }
+        });
+
+        isInitialLoad = false;
+        mod_insertCmd.options.object.id = objectId;
+
+        renderObjects();
+        updateSelectionSummary();
+        clearEquipmentColumn();
+        clearCommandColumn();
+
+        if (isNone) {
+            loadAllEquipments();
+        } else {
+            loadEquipments(objectId, false);
+        }
+    }
 
     function renderObjects() {
         objectList.innerHTML = '';
 
-        const select = document.createElement('select');
-        select.innerHTML = objectSelectHtml;
-
-        let options = Array.from(select.options).sort((a, b) =>
-            alphaCompare(a.textContent.trim(), b.textContent.trim())
-        );
+        let options = objectOptions;
 
         if (objectFilterText) {
             const needle = normalizeText(objectFilterText);
-            options = options.filter(option => normalizeText(option.textContent).includes(needle));
+            options = options.filter(option => normalizeText(option.name).includes(needle));
         }
 
         if (!options.length) {
@@ -494,52 +590,35 @@ if (!isConnect()) {
         }
 
         if (isInitialLoad && selectedObjectId === null) {
-            selectedObjectId = String(options[0].value || '');
+            selectedObjectId = options[0].id;
         }
 
+        const fragment = document.createDocumentFragment();
+
         options.forEach(option => {
-            const objectId = String(option.value || '');
-            const isNone = objectId === '';
+            const isNone = option.id === '';
             const div = document.createElement('div');
 
-            div.className = `miller-item${selectedObjectId === objectId ? ' selected' : ''}`;
-            div.innerHTML = `<span class="miller-item-name">${isNone ? '<i class="fas fa-ban"></i>' : '<i class="far fa-object-group"></i>'} ${escapeHtml(option.textContent.trim())}</span>`;
+            div.className = `miller-item${selectedObjectId === option.id ? ' selected' : ''}`;
+            div.dataset.objectId = option.id;
+            div.innerHTML = `<span class="miller-item-name">${isNone ? '<i class="fas fa-ban"></i>' : '<i class="far fa-object-group"></i>'} ${highlightMatch(option.name, objectFilterText)}</span>`;
 
-            div.onclick = function() {
-                selectedObjectId = objectId;
-                selectedEqLogicId = null;
-                mod_insertCmd.selectedCmd = null;
-                equipmentFilterText = '';
-                commandFilterText = '';
-
-                [equipmentFilterInput, commandFilterInput].forEach(input => {
-                    if (input) {
-                        input.value = '';
-                    }
-                });
-
-                isInitialLoad = false;
-                mod_insertCmd.options.object.id = objectId;
-
-                renderObjects();
-                updateSelectionSummary();
-                clearEquipmentColumn();
-                clearCommandColumn();
-
-                if (isNone) {
-                    loadAllEquipments();
-                } else {
-                    loadEquipments(objectId, false);
-                }
-            };
-
-            objectList.appendChild(div);
+            fragment.appendChild(div);
         });
+
+        objectList.appendChild(fragment);
 
         if (isInitialLoad) {
             selectedObjectId === '' ? loadAllEquipments() : loadEquipments(selectedObjectId, false);
         }
     }
+
+    objectList.addEventListener('click', function(event) {
+        const item = event.target.closest('.miller-item');
+        if (item && objectList.contains(item)) {
+            selectObject(item.dataset.objectId);
+        }
+    });
 
     function loadAllEquipments() {
         equipmentList.innerHTML = '<div class="miller-empty">{{Chargement...}}</div>';
@@ -642,32 +721,44 @@ if (!isConnect()) {
             return;
         }
 
+        const fragment = document.createDocumentFragment();
+
         visibleEqLogics.forEach(eqLogic => {
             const eqId = String(eqLogic.id);
             const div = document.createElement('div');
 
             div.className = `miller-item${selectedEqLogicId === eqId ? ' selected' : ''}`;
-            div.innerHTML = `<span class="miller-item-name"><i class="fas fa-puzzle-piece"></i> ${escapeHtml(String(eqLogic.name || ''))}</span>`;
+            div.dataset.eqId = eqId;
+            div.innerHTML = `<span class="miller-item-name"><i class="fas fa-puzzle-piece"></i> ${highlightMatch(String(eqLogic.name || ''), equipmentFilterText)}</span>`;
 
-            div.onclick = function() {
-                selectedEqLogicId = eqId;
-                mod_insertCmd.options.eqLogic.id = eqId;
-                mod_insertCmd.selectedCmd = null;
-                commandFilterText = '';
-
-                if (commandFilterInput) {
-                    commandFilterInput.value = '';
-                }
-
-                isInitialLoad = false;
-                renderEquipments();
-                updateSelectionSummary();
-                loadCommands(eqId, false);
-            };
-
-            equipmentList.appendChild(div);
+            fragment.appendChild(div);
         });
+
+        equipmentList.appendChild(fragment);
     }
+
+    function selectEquipment(eqId) {
+        selectedEqLogicId = eqId;
+        mod_insertCmd.options.eqLogic.id = eqId;
+        mod_insertCmd.selectedCmd = null;
+        commandFilterText = '';
+
+        if (commandFilterInput) {
+            commandFilterInput.value = '';
+        }
+
+        isInitialLoad = false;
+        renderEquipments();
+        updateSelectionSummary();
+        loadCommands(eqId, false);
+    }
+
+    equipmentList.addEventListener('click', function(event) {
+        const item = event.target.closest('.miller-item');
+        if (item && equipmentList.contains(item)) {
+            selectEquipment(item.dataset.eqId);
+        }
+    });
 
     function loadCommands(eqLogicId, restoreSelection) {
         commandList.innerHTML = '<div class="miller-empty">{{Chargement...}}</div>';
@@ -699,8 +790,11 @@ if (!isConnect()) {
                     humanName: ''
                 }));
 
+                const objName = getSelectedObjectName();
+                const eqName = getSelectedEqLogicName();
+
                 currentCommands.forEach(cmd => {
-                    cmd.humanName = `[${getSelectedObjectName()}][${getSelectedEqLogicName()}][${cmd.name}]`;
+                    cmd.humanName = `[${objName}][${eqName}][${cmd.name}]`;
                 });
 
                 currentCommands.sort((a, b) => alphaCompare(a.name, b.name));
@@ -729,29 +823,13 @@ if (!isConnect()) {
     }
 
     function getCommandIcon(cmd) {
-        const icons = {
-            info: {
-                numeric: 'fa-tachometer-alt',
-                binary: 'fa-toggle-on',
-                string: 'fa-font',
-                other: 'fa-info-circle'
-            },
-            action: {
-                message: 'fa-comment',
-                slider: 'fa-sliders-h',
-                color: 'fa-palette',
-                select: 'fa-list',
-                toggle: 'fa-toggle-on',
-                other: 'fa-bolt'
-            }
-        };
-
-        const icon = icons[cmd.type]?.[cmd.subType] || icons[cmd.type]?.other || 'fa-info-circle';
+        const icon = CMD_ICONS[cmd.type]?.[cmd.subType] || CMD_ICONS[cmd.type]?.other || 'fa-info-circle';
         return `<i class="fas ${icon}"></i>`;
     }
 
     function renderCommands() {
         commandList.innerHTML = '';
+        searchTruncatedNote.style.display = 'none';
 
         if (!currentCommands.length) {
             commandList.innerHTML = '<div class="miller-empty">{{Aucune commande}}</div>';
@@ -770,31 +848,27 @@ if (!isConnect()) {
             return;
         }
 
+        const fragment = document.createDocumentFragment();
+
         visibleCommands.forEach(cmd => {
             const isSelected = mod_insertCmd.selectedCmd && String(mod_insertCmd.selectedCmd.id) === String(cmd.id);
             const div = document.createElement('div');
-			const icon = getCommandIcon(cmd);
-          
+            const icon = getCommandIcon(cmd);
+
             div.className = `miller-item cmd-${cmd.type || 'info'}${isSelected ? ' selected' : ''}`;
-            div.innerHTML = `<span class="miller-item-name">${icon} ${escapeHtml(cmd.name)}</span><span class="badge-id">ID ${escapeHtml(cmd.id)}</span>`;
+            div.dataset.cmdId = String(cmd.id);
+            div.innerHTML = `<span class="miller-item-name">${icon} ${highlightMatch(cmd.name, commandFilterText)}</span><span class="badge-id">ID ${escapeHtml(cmd.id)}</span>`;
 
-            div.onclick = function() {
-                mod_insertCmd.selectedCmd = cmd;
-                renderCommands();
-                updateSelectionSummary();
-            };
-
-            div.ondblclick = function() {
-                mod_insertCmd.execute(cmd);
-            };
-
-            commandList.appendChild(div);
+            fragment.appendChild(div);
         });
+
+        commandList.appendChild(fragment);
     }
 
     function searchCommands(query) {
         const requestId = ++searchRequestId;
 
+        lastSearchQuery = query;
         searchLoading.style.display = 'block';
         commandList.innerHTML = '<div class="miller-empty">{{Recherche...}}</div>';
 
@@ -848,15 +922,52 @@ if (!isConnect()) {
                     results = data;
                 }
 
-                results.sort((a, b) => alphaCompare(a.humanName, b.humanName));
+                searchHasMore = false;
+                const lastResult = results[results.length - 1];
+                if (lastResult && lastResult.truncated) {
+                    searchHasMore = true;
+                    results = results.slice(0, -1);
+                }
+
+                results.sort((a, b) => {
+                    if (pastedExactHumanName) {
+                        const aExact = a.humanName === pastedExactHumanName;
+                        const bExact = b.humanName === pastedExactHumanName;
+                        if (aExact !== bExact) {
+                            return aExact ? -1 : 1;
+                        }
+                    }
+                    return alphaCompare(a.humanName, b.humanName);
+                });
+
                 currentSearchResults = results;
+
+                if (pastedExactHumanName) {
+                    const exactMatch = results.find(cmd => cmd.humanName === pastedExactHumanName);
+                    if (exactMatch) {
+                        mod_insertCmd.selectedCmd = exactMatch;
+                        updateSelectionSummary();
+                    }
+                }
+
                 renderSearchResults();
             }
         });
     }
 
+    function updateSearchTruncatedNote() {
+        if (!searchHasMore) {
+            searchTruncatedNote.style.display = 'none';
+            return;
+        }
+
+        searchTruncatedNote.textContent = `{{Plus de}} ${currentSearchResults.length} {{résultats — affinez votre recherche pour voir le reste}}`;
+        searchTruncatedNote.style.display = 'block';
+    }
+
     function renderSearchResults() {
         commandList.innerHTML = '';
+        updateSearchTruncatedNote();
 
         let results = currentSearchResults;
 
@@ -874,28 +985,66 @@ if (!isConnect()) {
             return;
         }
 
+        const fragment = document.createDocumentFragment();
+
         results.forEach(cmd => {
             const div = document.createElement('div');
             const isSelected = mod_insertCmd.selectedCmd && String(mod_insertCmd.selectedCmd.id) === String(cmd.id);
-			const icon = getCommandIcon(cmd);
-          
-            div.className = `miller-item cmd-${cmd.type || 'info'}${isSelected ? ' selected' : ''}`;
-            div.innerHTML = `<div class="miller-search-result"><div class="miller-search-human">${icon} ${escapeHtml(cmd.humanName || '')}</div><div class="miller-search-path">ID ${escapeHtml(String(cmd.id || ''))}</div></div>`;
+            const isExactMatch = Boolean(pastedExactHumanName) && cmd.humanName === pastedExactHumanName;
+            const icon = getCommandIcon(cmd);
+            const exactBadge = isExactMatch ? '<span class="miller-exact-badge">{{Correspondance exacte}}</span>' : '';
 
-            div.onclick = function() {
-                mod_insertCmd.selectedCmd = cmd;
-                commandList.querySelectorAll('.miller-item').forEach(item => item.classList.remove('selected'));
-                div.classList.add('selected');
-                updateSelectionSummary();
-            };
+            div.className = `miller-item cmd-${cmd.type || 'info'}${isSelected ? ' selected' : ''}${isExactMatch ? ' miller-item-exact' : ''}`;
+            div.dataset.cmdId = String(cmd.id);
+            const highlightQuery = commandFilterText || lastSearchQuery;
+            div.innerHTML = `<div class="miller-search-result"><div class="miller-search-human">${icon} ${highlightMatch(cmd.humanName || '', highlightQuery)}${exactBadge}</div><div class="miller-search-path">ID ${escapeHtml(String(cmd.id || ''))}</div></div>`;
 
-            div.ondblclick = function() {
-                mod_insertCmd.execute(cmd);
-            };
-
-            commandList.appendChild(div);
+            fragment.appendChild(div);
         });
+
+        commandList.appendChild(fragment);
     }
+
+    commandList.addEventListener('click', function(event) {
+        const item = event.target.closest('.miller-item');
+        if (!item || !commandList.contains(item)) {
+            return;
+        }
+
+        const cmdId = item.dataset.cmdId;
+        const source = isSearchMode ? currentSearchResults : currentCommands;
+        const cmd = source.find(c => String(c.id) === cmdId);
+
+        if (!cmd) {
+            return;
+        }
+
+        mod_insertCmd.selectedCmd = cmd;
+
+        if (isSearchMode) {
+            commandList.querySelectorAll('.miller-item.selected').forEach(el => el.classList.remove('selected'));
+            item.classList.add('selected');
+        } else {
+            renderCommands();
+        }
+
+        updateSelectionSummary();
+    });
+
+    commandList.addEventListener('dblclick', function(event) {
+        const item = event.target.closest('.miller-item');
+        if (!item || !commandList.contains(item)) {
+            return;
+        }
+
+        const cmdId = item.dataset.cmdId;
+        const source = isSearchMode ? currentSearchResults : currentCommands;
+        const cmd = source.find(c => String(c.id) === cmdId);
+
+        if (cmd) {
+            mod_insertCmd.execute(cmd);
+        }
+    });
 
     searchInput.addEventListener('input', function() {
         const query = searchInput.value.trim();
@@ -908,6 +1057,8 @@ if (!isConnect()) {
             if (isSearchMode) {
                 isSearchMode = false;
                 currentSearchResults = [];
+                searchHasMore = false;
+                pastedExactHumanName = null;
                 commandFilterText = '';
 
                 if (commandFilterInput) {
@@ -948,6 +1099,15 @@ if (!isConnect()) {
         equipmentColumn.style.display = 'none';
         commandColumn.style.display = 'flex';
 
+        const fullMatch = FULL_HUMAN_NAME_RE.exec(query);
+
+        if (fullMatch) {
+            pastedExactHumanName = `[${fullMatch[1]}][${fullMatch[2]}][${fullMatch[3]}]`;
+            searchCommands(pastedExactHumanName);
+            return;
+        }
+
+        pastedExactHumanName = null;
         searchTimer = setTimeout(() => searchCommands(query), SEARCH_DEBOUNCE_MS);
     });
 
@@ -983,8 +1143,7 @@ if (!isConnect()) {
     }
 
     function getSelectedObjectName() {
-        const option = getObjectOption(selectedObjectId);
-        return option ? option.textContent.trim() : '';
+        return getObjectNameById(selectedObjectId);
     }
 
     function getSelectedEqLogicName() {
@@ -992,18 +1151,9 @@ if (!isConnect()) {
         return eq ? String(eq.name || '') : '';
     }
 
-    function getObjectOption(id) {
-        const select = document.createElement('select');
-        select.innerHTML = objectSelectHtml;
-
-        return Array.from(select.options).find(option =>
-            String(option.value) === String(id)
-        ) || null;
-    }
-
     function getObjectNameById(id) {
-        const option = getObjectOption(id);
-        return option ? option.textContent.trim() : '';
+        const option = objectsById.get(String(id));
+        return option ? option.name : '';
     }
 
     function updateSelectionSummary() {
@@ -1062,9 +1212,36 @@ if (!isConnect()) {
     }
 
     function escapeHtml(value) {
-        const div = document.createElement('div');
-        div.textContent = String(value ?? '');
-        return div.innerHTML;
+        escapeDiv.textContent = String(value ?? '');
+        return escapeDiv.innerHTML;
+    }
+
+    function highlightMatch(text, query) {
+        const value = String(text ?? '');
+
+        if (!query) {
+            return escapeHtml(value);
+        }
+
+        const normalizedValue = normalizeText(value);
+        const normalizedQuery = normalizeText(query);
+
+        if (!normalizedQuery || normalizedValue.length !== value.length) {
+            return escapeHtml(value);
+        }
+
+        const startIndex = normalizedValue.indexOf(normalizedQuery);
+
+        if (startIndex === -1) {
+            return escapeHtml(value);
+        }
+
+        const endIndex = startIndex + normalizedQuery.length;
+        const before = value.slice(0, startIndex);
+        const match = value.slice(startIndex, endIndex);
+        const after = value.slice(endIndex);
+
+        return `${escapeHtml(before)}<strong class="miller-match">${escapeHtml(match)}</strong>${escapeHtml(after)}`;
     }
 
     renderObjects();
