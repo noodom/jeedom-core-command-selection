@@ -64,7 +64,8 @@ if (!isConnect()) {
     --miller-summary-bg: rgba(0, 122, 204, 0.08);
 }
 
-.miller-search-bar {
+.miller-search-bar,
+.miller-filter-wrapper {
     position: relative;
 }
 
@@ -82,7 +83,7 @@ if (!isConnect()) {
 .miller-search-bar input {
     width: 100%;
     box-sizing: border-box;
-    padding: 8px 35px 8px 32px;
+    padding: 8px 55px 8px 32px;
     border: 1px solid var(--miller-border);
     border-radius: 4px;
     outline: none;
@@ -105,12 +106,40 @@ if (!isConnect()) {
 .miller-search-loading {
     position: absolute;
     top: 50%;
-    right: 10px;
+    right: 34px;
     display: none;
     transform: translateY(-50%);
     color: var(--miller-text-muted);
     font-size: 13px;
     opacity: 0.7;
+}
+
+.miller-clear-input {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    z-index: 2;
+    display: none;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    color: var(--miller-text-muted);
+    font-size: 11px;
+    line-height: 20px;
+    cursor: pointer;
+}
+
+.miller-clear-input:hover {
+    background: var(--miller-bg-hover);
+    color: var(--miller-text);
+}
+
+.miller-clear-input.visible {
+    display: block;
 }
 
 .miller-selection-summary {
@@ -183,7 +212,7 @@ if (!isConnect()) {
 .miller-col-filter {
     width: 100%;
     box-sizing: border-box;
-    padding: 4px 8px;
+    padding: 4px 32px 4px 8px;
     border: 1px solid var(--miller-border);
     border-radius: 3px;
     outline: none;
@@ -336,6 +365,9 @@ if (!isConnect()) {
     <div class="miller-search-bar">
         <input type="text" id="in_cmdHumanInsertSearch" placeholder="{{Rechercher un objet, équipement, commande ou ID...}}" autocomplete="off">
         <span id="miller_search_loading" class="miller-search-loading"><i class="fas fa-spinner fa-spin"></i></span>
+        <button type="button" class="miller-clear-input" id="clear_miller_search" title="{{Effacer}}" aria-label="{{Effacer}}">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
     <div id="div_miller_selection_summary" class="miller-selection-summary">
         <span class="miller-selection-empty">{{Aucune sélection}}</span>
@@ -344,21 +376,36 @@ if (!isConnect()) {
         <div class="miller-col" id="col_miller_objects">
             <div class="miller-col-header">
                 <span class="miller-col-title">{{Objets}}</span>
-                <input type="text" class="miller-col-filter" id="filter_miller_objects" placeholder="{{Filtrer...}}" autocomplete="off">
+                <div class="miller-filter-wrapper">
+                    <input type="text" class="miller-col-filter" id="filter_miller_objects" placeholder="{{Filtrer...}}" autocomplete="off">
+                    <button type="button" class="miller-clear-input" title="{{Effacer}}" aria-label="{{Effacer}}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
             <div class="miller-col-content" id="list_miller_objects"></div>
         </div>
         <div class="miller-col" id="col_miller_equipments">
             <div class="miller-col-header">
                 <span class="miller-col-title">{{Équipements}}</span>
-                <input type="text" class="miller-col-filter" id="filter_miller_equipments" placeholder="{{Filtrer...}}" autocomplete="off">
+                <div class="miller-filter-wrapper">
+                    <input type="text" class="miller-col-filter" id="filter_miller_equipments" placeholder="{{Filtrer...}}" autocomplete="off">
+                    <button type="button" class="miller-clear-input" title="{{Effacer}}" aria-label="{{Effacer}}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
             <div class="miller-col-content" id="list_miller_commands_eq"></div>
         </div>
         <div class="miller-col" id="col_miller_commands">
             <div class="miller-col-header">
                 <span class="miller-col-title">{{Commandes}}</span>
-                <input type="text" class="miller-col-filter" id="filter_miller_commands" placeholder="{{Filtrer...}}" autocomplete="off">
+                <div class="miller-filter-wrapper">
+                    <input type="text" class="miller-col-filter" id="filter_miller_commands" placeholder="{{Filtrer...}}" autocomplete="off">
+                    <button type="button" class="miller-clear-input" title="{{Effacer}}" aria-label="{{Effacer}}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
             <div class="miller-search-truncated" id="div_miller_search_truncated" style="display: none;"></div>
             <div class="miller-col-content" id="list_miller_commands"></div>
@@ -395,6 +442,7 @@ if (!isConnect()) {
     }
 
     const searchInput = document.getElementById('in_cmdHumanInsertSearch');
+    const clearSearchButton = document.getElementById('clear_miller_search');
     const searchLoading = document.getElementById('miller_search_loading');
     const objectColumn = document.getElementById('col_miller_objects');
     const equipmentColumn = document.getElementById('col_miller_equipments');
@@ -481,6 +529,7 @@ if (!isConnect()) {
         [objectFilterInput, equipmentFilterInput, commandFilterInput].forEach(input => {
             if (input) {
                 input.value = '';
+                updateClearButton(input);
             }
         });
 
@@ -554,6 +603,7 @@ if (!isConnect()) {
         [equipmentFilterInput, commandFilterInput].forEach(input => {
             if (input) {
                 input.value = '';
+                updateClearButton(input);
             }
         });
 
@@ -1050,7 +1100,41 @@ if (!isConnect()) {
         }
     });
 
+    function updateClearButton(input) {
+        const button = input?.parentElement?.querySelector('.miller-clear-input');
+        if (button) {
+            button.classList.toggle('visible', Boolean(input.value));
+        }
+    }
+
+    function clearInput(input) {
+        if (!input) {
+            return;
+        }
+
+        input.value = '';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.focus();
+    }
+
+    if (clearSearchButton) {
+        clearSearchButton.addEventListener('click', () => clearInput(searchInput));
+    }
+
+    [objectFilterInput, equipmentFilterInput, commandFilterInput].forEach(input => {
+        if (!input) {
+            return;
+        }
+
+        const clearButton = input.parentElement?.querySelector('.miller-clear-input');
+        if (clearButton) {
+            clearButton.addEventListener('click', () => clearInput(input));
+        }
+    });
+
     searchInput.addEventListener('input', function() {
+        updateClearButton(searchInput);
+
         const query = searchInput.value.trim();
 
         clearTimeout(searchTimer);
@@ -1117,6 +1201,7 @@ if (!isConnect()) {
 
     if (objectFilterInput) {
         objectFilterInput.addEventListener('input', function() {
+            updateClearButton(objectFilterInput);
             objectFilterText = objectFilterInput.value.trim();
             renderObjects();
         });
@@ -1124,6 +1209,7 @@ if (!isConnect()) {
 
     if (equipmentFilterInput) {
         equipmentFilterInput.addEventListener('input', function() {
+            updateClearButton(equipmentFilterInput);
             equipmentFilterText = equipmentFilterInput.value.trim();
             renderEquipments();
         });
@@ -1131,6 +1217,7 @@ if (!isConnect()) {
 
     if (commandFilterInput) {
         commandFilterInput.addEventListener('input', function() {
+            updateClearButton(commandFilterInput);
             commandFilterText = commandFilterInput.value.trim();
             isSearchMode ? renderSearchResults() : renderCommands();
         });
@@ -1250,6 +1337,10 @@ if (!isConnect()) {
 
     renderObjects();
     updateSelectionSummary();
+    updateClearButton(searchInput);
+    updateClearButton(objectFilterInput);
+    updateClearButton(equipmentFilterInput);
+    updateClearButton(commandFilterInput);
 
     setTimeout(() => searchInput.focus(), 100);
 })();
