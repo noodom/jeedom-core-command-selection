@@ -63,9 +63,7 @@ if (!isConnect()) {
     --miller-badge: rgba(0, 0, 0, 0.05);
     --miller-summary-bg: rgba(0, 122, 204, 0.08);
 }
-
-.miller-search-bar,
-.miller-filter-wrapper {
+.miller-search-bar, .miller-filter-wrapper { 
     position: relative;
 }
 
@@ -92,15 +90,13 @@ if (!isConnect()) {
     font-size: 14px;
 }
 
-.miller-search-bar input::placeholder,
-.miller-col-filter::placeholder {
+.miller-search-bar input::placeholder, .miller-col-filter::placeholder {
     color: var(--miller-text-muted);
     opacity: 1;
 }
 
-.miller-search-bar input:focus,
-.miller-col-filter:focus {
-    border-color: var(--miller-primary);
+.miller-search-bar input:focus, .miller-col-filter:focus { 
+    border-color: var(--miller-primary); 
 }
 
 .miller-search-loading {
@@ -138,8 +134,8 @@ if (!isConnect()) {
     color: var(--miller-text);
 }
 
-.miller-clear-input.visible {
-    display: block;
+.miller-clear-input.visible { 
+    display: block; 
 }
 
 .miller-selection-summary {
@@ -154,22 +150,22 @@ if (!isConnect()) {
     text-overflow: ellipsis;
 }
 
-.miller-selection-summary.cmd-info {
-    border-color: var(--miller-info);
+.miller-selection-summary.cmd-info { 
+    border-color: var(--miller-info); 
 }
 
-.miller-selection-summary.cmd-action {
-    border-color: var(--miller-warning);
+.miller-selection-summary.cmd-action { 
+    border-color: var(--miller-warning); 
 }
 
-.miller-selection-summary .miller-selection-empty {
-    opacity: 0.6;
-    font-style: italic;
+.miller-selection-summary .miller-selection-empty { 
+    opacity: 0.6; 
+    font-style: italic; 
 }
 
-.miller-selection-summary .miller-selection-sep {
-    margin: 0 4px;
-    opacity: 0.5;
+.miller-selection-summary .miller-selection-sep { 
+    margin: 0 4px; 
+    opacity: 0.5; 
 }
 
 .miller-columns-wrapper {
@@ -189,8 +185,8 @@ if (!isConnect()) {
     border-right: 1px solid var(--miller-border-light);
 }
 
-.miller-col:last-child {
-    border-right: none;
+.miller-col:last-child { 
+    border-right: none; 
 }
 
 .miller-col-header {
@@ -221,9 +217,9 @@ if (!isConnect()) {
     font-size: 12px;
 }
 
-.miller-col-content {
-    flex: 1;
-    overflow-y: auto;
+.miller-col-content { 
+    flex: 1; 
+    overflow-y: auto; 
     padding: 4px 0;
 }
 
@@ -241,19 +237,19 @@ if (!isConnect()) {
     transition: background 0.1s;
 }
 
-.miller-item:hover {
+.miller-item:hover { 
     background: var(--miller-bg-hover);
 }
 
-.miller-item.selected {
-    background: var(--miller-primary) !important;
-    color: #fff !important;
+.miller-item.selected { 
+    background: var(--miller-primary) !important; 
+    color: #fff !important; 
 }
 
-.miller-item .miller-item-name {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.miller-item .miller-item-name { 
+    min-width: 0; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
 }
 
 .miller-item .badge-id {
@@ -267,40 +263,37 @@ if (!isConnect()) {
     opacity: 0.8;
 }
 
-.miller-item.cmd-action {
-    color: var(--miller-warning);
+.miller-item.cmd-action { 
+    color: var(--miller-warning); 
 }
 
-.miller-item.cmd-info {
-    color: var(--miller-info);
+.miller-item.cmd-info { 
+    color: var(--miller-info); 
 }
 
-.miller-item.selected.cmd-action,
-.miller-item.selected.cmd-info {
-    color: #fff;
+.miller-item.selected.cmd-action, .miller-item.selected.cmd-info { 
+    color: #fff; 
 }
 
-.miller-search-result {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    overflow: hidden;
+.miller-search-result { 
+    display: flex; 
+    flex-direction: column; 
+    width: 100%; 
+    overflow: hidden; 
 }
 
-.miller-search-human,
-.miller-search-path {
-    overflow: hidden;
-    text-overflow: ellipsis;
+.miller-search-human, .miller-search-path { 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+}
+.miller-search-path { 
+    margin-top: 2px; 
+    color: var(--miller-text-muted); 
+    font-size: 10px; 
 }
 
-.miller-search-path {
-    margin-top: 2px;
-    color: var(--miller-text-muted);
-    font-size: 10px;
-}
-
-.miller-item.miller-item-exact {
-    border-left: 3px solid var(--miller-primary);
+.miller-item.miller-item-exact { 
+    border-left: 3px solid var(--miller-primary); 
 }
 
 .miller-match {
@@ -324,18 +317,17 @@ if (!isConnect()) {
     white-space: nowrap;
 }
 
-.miller-empty,
-.miller-error {
-    padding: 12px;
-    font-size: 13px;
+.miller-empty, .miller-error { 
+    padding: 12px; 
+    font-size: 13px; 
 }
 
-.miller-empty {
-    color: var(--miller-text-muted);
+.miller-empty { 
+    color: var(--miller-text-muted); 
 }
 
-.miller-error {
-    color: var(--miller-danger);
+.miller-error { 
+    color: var(--miller-danger); 
 }
 
 .miller-search-truncated {
@@ -365,22 +357,16 @@ if (!isConnect()) {
     <div class="miller-search-bar">
         <input type="text" id="in_cmdHumanInsertSearch" placeholder="{{Rechercher un objet, équipement, commande ou ID...}}" autocomplete="off">
         <span id="miller_search_loading" class="miller-search-loading"><i class="fas fa-spinner fa-spin"></i></span>
-        <button type="button" class="miller-clear-input" id="clear_miller_search" title="{{Effacer}}" aria-label="{{Effacer}}">
-            <i class="fas fa-times"></i>
-        </button>
+        <button type="button" class="miller-clear-input" id="clear_miller_search" aria-label="{{Effacer}}"><i class="fas fa-times"></i></button>
     </div>
-    <div id="div_miller_selection_summary" class="miller-selection-summary">
-        <span class="miller-selection-empty">{{Aucune sélection}}</span>
-    </div>
+    <div id="div_miller_selection_summary" class="miller-selection-summary"><span class="miller-selection-empty">{{Aucune sélection}}</span></div>
     <div class="miller-columns-wrapper">
         <div class="miller-col" id="col_miller_objects">
             <div class="miller-col-header">
                 <span class="miller-col-title">{{Objets}}</span>
                 <div class="miller-filter-wrapper">
                     <input type="text" class="miller-col-filter" id="filter_miller_objects" placeholder="{{Filtrer...}}" autocomplete="off">
-                    <button type="button" class="miller-clear-input" title="{{Effacer}}" aria-label="{{Effacer}}">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <button type="button" class="miller-clear-input" aria-label="{{Effacer}}"><i class="fas fa-times"></i></button>
                 </div>
             </div>
             <div class="miller-col-content" id="list_miller_objects"></div>
@@ -390,9 +376,7 @@ if (!isConnect()) {
                 <span class="miller-col-title">{{Équipements}}</span>
                 <div class="miller-filter-wrapper">
                     <input type="text" class="miller-col-filter" id="filter_miller_equipments" placeholder="{{Filtrer...}}" autocomplete="off">
-                    <button type="button" class="miller-clear-input" title="{{Effacer}}" aria-label="{{Effacer}}">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <button type="button" class="miller-clear-input" aria-label="{{Effacer}}"><i class="fas fa-times"></i></button>
                 </div>
             </div>
             <div class="miller-col-content" id="list_miller_commands_eq"></div>
@@ -402,9 +386,7 @@ if (!isConnect()) {
                 <span class="miller-col-title">{{Commandes}}</span>
                 <div class="miller-filter-wrapper">
                     <input type="text" class="miller-col-filter" id="filter_miller_commands" placeholder="{{Filtrer...}}" autocomplete="off">
-                    <button type="button" class="miller-clear-input" title="{{Effacer}}" aria-label="{{Effacer}}">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <button type="button" class="miller-clear-input" aria-label="{{Effacer}}"><i class="fas fa-times"></i></button>
                 </div>
             </div>
             <div class="miller-search-truncated" id="div_miller_search_truncated" style="display: none;"></div>
@@ -414,7 +396,7 @@ if (!isConnect()) {
 </div>
 
 <script>
-(function() {
+(function () {
     'use strict';
 
     const SEARCH_MIN_LENGTH = 2;
@@ -429,17 +411,13 @@ if (!isConnect()) {
         return String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
 
-    if (window.mod_insertCmd === undefined) {
-        window.mod_insertCmd = {};
-    }
+    if (window.mod_insertCmd === undefined) window.mod_insertCmd = {};
 
     mod_insertCmd.options = mod_insertCmd.options || {};
     mod_insertCmd.selectedCmd = null;
 
     const container = document.getElementById('div_cmdHumanInsert');
-    if (!container) {
-        return;
-    }
+    if (!container) return;
 
     const searchInput = document.getElementById('in_cmdHumanInsertSearch');
     const clearSearchButton = document.getElementById('clear_miller_search');
@@ -473,12 +451,13 @@ if (!isConnect()) {
     let commandFilterText = '';
 
     const objectSelectHtml = <?php echo json_encode(jeeObject::getUISelectList()); ?>;
-    const objectOptions = (function() {
+    const objectOptions = (() => {
         const select = document.createElement('select');
         select.innerHTML = objectSelectHtml;
-        return Array.from(select.options)
-            .map(option => ({ id: String(option.value || ''), name: option.textContent.trim() }))
-            .sort((a, b) => alphaCompare(a.name, b.name));
+        return Array.from(select.options).map(option => ({
+            id: String(option.value || ''),
+            name: option.textContent.trim()
+        })).sort((a, b) => alphaCompare(a.name, b.name));
     })();
 
     const objectsById = new Map(objectOptions.map(o => [o.id, o]));
@@ -501,7 +480,19 @@ if (!isConnect()) {
         }
     };
 
-    mod_insertCmd.setOptions = function(_options) {
+    function updateEllipsisTooltip(item) {
+        const name = item.querySelector('.miller-item-name, .miller-search-human');
+        if (!name) {
+            item.removeAttribute('title');
+            return;
+        }
+        requestAnimationFrame(() => {
+            if (name.scrollWidth > name.clientWidth) item.title = name.textContent.trim();
+            else item.removeAttribute('title');
+        });
+    }
+
+    mod_insertCmd.setOptions = function (_options) {
         mod_insertCmd.options = _options || {};
         mod_insertCmd.options.cmd = mod_insertCmd.options.cmd || {};
         mod_insertCmd.options.eqLogic = mod_insertCmd.options.eqLogic || {};
@@ -511,11 +502,7 @@ if (!isConnect()) {
         const headerTitle = container.querySelector('#col_miller_commands .miller-col-title');
 
         if (headerTitle) {
-            headerTitle.textContent = type === 'info'
-                ? '{{Commandes info}}'
-                : type === 'action'
-                    ? '{{Commandes action}}'
-                    : '{{Commandes}}';
+            headerTitle.textContent = type === 'info' ? '{{Commandes info}}' : type === 'action' ? '{{Commandes action}}' : '{{Commandes}}';
         }
 
         selectedObjectId = null;
@@ -537,39 +524,34 @@ if (!isConnect()) {
         updateSelectionSummary();
     };
 
-    mod_insertCmd.getCmdId = function() {
+    mod_insertCmd.getCmdId = function () {
         return mod_insertCmd.selectedCmd ? String(mod_insertCmd.selectedCmd.id || '') : null;
     };
 
-    mod_insertCmd.getType = function() {
+    mod_insertCmd.getType = function () {
         return mod_insertCmd.selectedCmd ? String(mod_insertCmd.selectedCmd.type || '') : null;
     };
 
-    mod_insertCmd.getSubType = function() {
+    mod_insertCmd.getSubType = function () {
         return mod_insertCmd.selectedCmd ? String(mod_insertCmd.selectedCmd.subType || '') : null;
     };
 
-    mod_insertCmd.getName = function() {
+    mod_insertCmd.getName = function () {
         return mod_insertCmd.selectedCmd ? String(mod_insertCmd.selectedCmd.name || '') : '';
     };
 
-    mod_insertCmd.getCmdHumanName = function() {
-        if (!mod_insertCmd.selectedCmd) {
-            return '';
-        }
-
+    mod_insertCmd.getCmdHumanName = function () {
+        if (!mod_insertCmd.selectedCmd) return '';
         const humanName = String(mod_insertCmd.selectedCmd.humanName || mod_insertCmd.selectedCmd.human || '');
         return humanName ? `#${humanName}#` : '';
     };
 
-    mod_insertCmd.getValue = function() {
+    mod_insertCmd.getValue = function () {
         return mod_insertCmd.getCmdHumanName();
     };
 
-    mod_insertCmd.execute = function(cmd) {
-        if (!cmd) {
-            return;
-        }
+    mod_insertCmd.execute = function (cmd) {
+        if (!cmd) return;
 
         mod_insertCmd.selectedCmd = cmd;
         const humanName = String(cmd.humanName || cmd.human || '');
@@ -580,12 +562,8 @@ if (!isConnect()) {
         } else if (typeof cmdHumanInsertCallBack === 'function') {
             cmdHumanInsertCallBack(formattedCmd);
         } else {
-            const targetInput = container.targetInput
-                || (container.dataset.input ? document.querySelector(container.dataset.input) : null);
-
-            if (targetInput && typeof targetInput.insertAtCursor === 'function') {
-                targetInput.insertAtCursor(formattedCmd);
-            }
+            const targetInput = container.targetInput || (container.dataset.input ? document.querySelector(container.dataset.input) : null);
+            if (targetInput && typeof targetInput.insertAtCursor === 'function') targetInput.insertAtCursor(formattedCmd);
         }
 
         container.closest('.jeeDialog')?._jeeDialog?.close();
@@ -626,49 +604,37 @@ if (!isConnect()) {
         objectList.innerHTML = '';
 
         let options = objectOptions;
-
         if (objectFilterText) {
             const needle = normalizeText(objectFilterText);
             options = options.filter(option => normalizeText(option.name).includes(needle));
         }
 
         if (!options.length) {
-            objectList.innerHTML = objectFilterText
-                ? '<div class="miller-empty">{{Aucun résultat}}</div>'
-                : '<div class="miller-empty">{{Aucun objet}}</div>';
+            objectList.innerHTML = objectFilterText ? '<div class="miller-empty">{{Aucun résultat}}</div>' : '<div class="miller-empty">{{Aucun objet}}</div>';
             return;
         }
 
-        if (isInitialLoad && selectedObjectId === null) {
-            selectedObjectId = options[0].id;
-        }
+        if (isInitialLoad && selectedObjectId === null) selectedObjectId = options[0].id;
 
         const fragment = document.createDocumentFragment();
 
         options.forEach(option => {
             const isNone = option.id === '';
             const div = document.createElement('div');
-
             div.className = `miller-item${selectedObjectId === option.id ? ' selected' : ''}`;
             div.dataset.objectId = option.id;
-            div.title = option.name;
             div.innerHTML = `<span class="miller-item-name">${isNone ? '<i class="fas fa-ban"></i>' : '<i class="far fa-object-group"></i>'} ${highlightMatch(option.name, objectFilterText)}</span>`;
-
             fragment.appendChild(div);
+            updateEllipsisTooltip(div);
         });
 
         objectList.appendChild(fragment);
-
-        if (isInitialLoad) {
-            selectedObjectId === '' ? loadAllEquipments() : loadEquipments(selectedObjectId, false);
-        }
+        if (isInitialLoad) selectedObjectId === '' ? loadAllEquipments() : loadEquipments(selectedObjectId, false);
     }
 
-    objectList.addEventListener('click', function(event) {
+    objectList.addEventListener('click', function (event) {
         const item = event.target.closest('.miller-item');
-        if (item && objectList.contains(item)) {
-            selectObject(item.dataset.objectId);
-        }
+        if (item && objectList.contains(item)) selectObject(item.dataset.objectId);
     });
 
     function loadAllEquipments() {
@@ -685,13 +651,11 @@ if (!isConnect()) {
             id: -1,
             orderByName: true,
             onlyHasCmds: cmdFilter,
-
-            error: function(error) {
+            error: function (error) {
                 isInitialLoad = false;
                 equipmentList.innerHTML = `<div class="miller-error">${escapeHtml(error && error.message ? error.message : '{{Erreur de chargement}}')}</div>`;
             },
-
-            success: function(eqLogics) {
+            success: function (eqLogics) {
                 currentEqLogics = Array.isArray(eqLogics) ? eqLogics : [];
                 renderEquipments();
 
@@ -711,10 +675,7 @@ if (!isConnect()) {
     function loadEquipments(objectId, restoreSelection) {
         equipmentList.innerHTML = '<div class="miller-empty">{{Chargement...}}</div>';
         commandList.innerHTML = '';
-
-        if (!restoreSelection) {
-            selectedEqLogicId = null;
-        }
+        if (!restoreSelection) selectedEqLogicId = null;
 
         const cmdFilter = mod_insertCmd.options.cmd || {};
 
@@ -722,13 +683,11 @@ if (!isConnect()) {
             id: objectId || -1,
             orderByName: true,
             onlyHasCmds: cmdFilter,
-
-            error: function(error) {
+            error: function (error) {
                 isInitialLoad = false;
                 equipmentList.innerHTML = `<div class="miller-error">${escapeHtml(error && error.message ? error.message : '{{Erreur de chargement}}')}</div>`;
             },
-
-            success: function(eqLogics) {
+            success: function (eqLogics) {
                 currentEqLogics = Array.isArray(eqLogics) ? eqLogics : [];
                 renderEquipments();
 
@@ -742,9 +701,7 @@ if (!isConnect()) {
 
                 if (selectedEqLogicId) {
                     const exists = currentEqLogics.some(eq => String(eq.id) === String(selectedEqLogicId));
-                    if (exists) {
-                        loadCommands(selectedEqLogicId, true);
-                    }
+                    if (exists) loadCommands(selectedEqLogicId, true);
                 }
             }
         });
@@ -752,19 +709,15 @@ if (!isConnect()) {
 
     function renderEquipments() {
         equipmentList.innerHTML = '';
-
         if (!currentEqLogics.length) {
             equipmentList.innerHTML = '<div class="miller-empty">{{Aucun équipement}}</div>';
             return;
         }
 
         let visibleEqLogics = currentEqLogics;
-
         if (equipmentFilterText) {
             const needle = normalizeText(equipmentFilterText);
-            visibleEqLogics = currentEqLogics.filter(eqLogic =>
-                normalizeText(eqLogic.name).includes(needle)
-            );
+            visibleEqLogics = currentEqLogics.filter(eqLogic => normalizeText(eqLogic.name).includes(needle));
         }
 
         if (!visibleEqLogics.length) {
@@ -777,13 +730,11 @@ if (!isConnect()) {
         visibleEqLogics.forEach(eqLogic => {
             const eqId = String(eqLogic.id);
             const div = document.createElement('div');
-
             div.className = `miller-item${selectedEqLogicId === eqId ? ' selected' : ''}`;
             div.dataset.eqId = eqId;
-            div.title = String(eqLogic.name || '');
             div.innerHTML = `<span class="miller-item-name"><i class="fas fa-puzzle-piece"></i> ${highlightMatch(String(eqLogic.name || ''), equipmentFilterText)}</span>`;
-
             fragment.appendChild(div);
+            updateEllipsisTooltip(div);
         });
 
         equipmentList.appendChild(fragment);
@@ -797,6 +748,7 @@ if (!isConnect()) {
 
         if (commandFilterInput) {
             commandFilterInput.value = '';
+            updateClearButton(commandFilterInput);
         }
 
         isInitialLoad = false;
@@ -805,32 +757,24 @@ if (!isConnect()) {
         loadCommands(eqId, false);
     }
 
-    equipmentList.addEventListener('click', function(event) {
+    equipmentList.addEventListener('click', function (event) {
         const item = event.target.closest('.miller-item');
-        if (item && equipmentList.contains(item)) {
-            selectEquipment(item.dataset.eqId);
-        }
+        if (item && equipmentList.contains(item)) selectEquipment(item.dataset.eqId);
     });
 
     function loadCommands(eqLogicId, restoreSelection) {
         commandList.innerHTML = '<div class="miller-empty">{{Chargement...}}</div>';
-
         const filter = mod_insertCmd.options.cmd || {};
-
-        if (!restoreSelection || !mod_insertCmd.options.cmd) {
-            mod_insertCmd.selectedCmd = null;
-        }
+        if (!restoreSelection || !mod_insertCmd.options.cmd) mod_insertCmd.selectedCmd = null;
 
         jeedom.eqLogic.buildSelectCmd({
             id: eqLogicId,
             filter: filter,
-
-            error: function(error) {
+            error: function (error) {
                 isInitialLoad = false;
                 commandList.innerHTML = `<div class="miller-error">${escapeHtml(error && error.message ? error.message : '{{Erreur de chargement}}')}</div>`;
             },
-
-            success: function(html) {
+            success: function (html) {
                 const select = document.createElement('select');
                 select.innerHTML = html || '';
 
@@ -844,7 +788,6 @@ if (!isConnect()) {
 
                 const objName = getSelectedObjectName();
                 const eqName = getSelectedEqLogicName();
-
                 currentCommands.forEach(cmd => {
                     cmd.humanName = `[${objName}][${eqName}][${cmd.name}]`;
                 });
@@ -889,7 +832,6 @@ if (!isConnect()) {
         }
 
         let visibleCommands = currentCommands;
-
         if (commandFilterText) {
             const needle = normalizeText(commandFilterText);
             visibleCommands = currentCommands.filter(cmd => normalizeText(cmd.name).includes(needle));
@@ -909,10 +851,9 @@ if (!isConnect()) {
 
             div.className = `miller-item cmd-${cmd.type || 'info'}${isSelected ? ' selected' : ''}`;
             div.dataset.cmdId = String(cmd.id);
-            div.title = cmd.humanName || cmd.name;
             div.innerHTML = `<span class="miller-item-name">${icon} ${highlightMatch(cmd.name, commandFilterText)}</span><span class="badge-id">ID ${escapeHtml(cmd.id)}</span>`;
-
             fragment.appendChild(div);
+            updateEllipsisTooltip(div);
         });
 
         commandList.appendChild(fragment);
@@ -920,7 +861,6 @@ if (!isConnect()) {
 
     function searchCommands(query) {
         const requestId = ++searchRequestId;
-
         lastSearchQuery = query;
         searchLoading.style.display = 'block';
         commandList.innerHTML = '<div class="miller-empty">{{Recherche...}}</div>';
@@ -939,44 +879,28 @@ if (!isConnect()) {
             },
             dataType: 'json',
             global: false,
-
-            error: function(error) {
-                if (requestId !== searchRequestId) {
-                    return;
-                }
-
+            error: function (error) {
+                if (requestId !== searchRequestId) return;
                 searchLoading.style.display = 'none';
 
                 let message = '{{Erreur lors de la recherche}}';
-
-                if (typeof error === 'string') {
-                    message = error;
-                } else if (error && error.message) {
-                    message = error.message;
-                } else if (error && error.responseJSON && error.responseJSON.message) {
-                    message = error.responseJSON.message;
-                }
+                if (typeof error === 'string') message = error;
+                else if (error && error.message) message = error.message;
+                else if (error && error.responseJSON && error.responseJSON.message) message = error.responseJSON.message;
 
                 commandList.innerHTML = `<div class="miller-error">${escapeHtml(message)}</div>`;
             },
-
-            success: function(data) {
-                if (requestId !== searchRequestId) {
-                    return;
-                }
-
+            success: function (data) {
+                if (requestId !== searchRequestId) return;
                 searchLoading.style.display = 'none';
 
                 let results = [];
-
-                if (data && Array.isArray(data.result)) {
-                    results = data.result;
-                } else if (Array.isArray(data)) {
-                    results = data;
-                }
+                if (data && Array.isArray(data.result)) results = data.result;
+                else if (Array.isArray(data)) results = data;
 
                 searchHasMore = false;
                 const lastResult = results[results.length - 1];
+
                 if (lastResult && lastResult.truncated) {
                     searchHasMore = true;
                     results = results.slice(0, -1);
@@ -986,9 +910,7 @@ if (!isConnect()) {
                     if (pastedExactHumanName) {
                         const aExact = a.humanName === pastedExactHumanName;
                         const bExact = b.humanName === pastedExactHumanName;
-                        if (aExact !== bExact) {
-                            return aExact ? -1 : 1;
-                        }
+                        if (aExact !== bExact) return aExact ? -1 : 1;
                     }
                     return alphaCompare(a.humanName, b.humanName);
                 });
@@ -1023,12 +945,9 @@ if (!isConnect()) {
         updateSearchTruncatedNote();
 
         let results = currentSearchResults;
-
         if (commandFilterText) {
             const needle = normalizeText(commandFilterText);
-            results = results.filter(cmd =>
-                normalizeText(cmd.humanName || cmd.name).includes(needle)
-            );
+            results = results.filter(cmd => normalizeText(cmd.humanName || cmd.name).includes(needle));
         }
 
         if (!results.length) {
@@ -1049,29 +968,25 @@ if (!isConnect()) {
 
             div.className = `miller-item cmd-${cmd.type || 'info'}${isSelected ? ' selected' : ''}${isExactMatch ? ' miller-item-exact' : ''}`;
             div.dataset.cmdId = String(cmd.id);
-            div.title = cmd.humanName || cmd.name || '';
+
             const highlightQuery = commandFilterText || lastSearchQuery;
             div.innerHTML = `<div class="miller-search-result"><div class="miller-search-human">${icon} ${highlightMatch(cmd.humanName || '', highlightQuery)}${exactBadge}</div><div class="miller-search-path">ID ${escapeHtml(String(cmd.id || ''))}</div></div>`;
 
             fragment.appendChild(div);
+            updateEllipsisTooltip(div);
         });
 
         commandList.appendChild(fragment);
     }
 
-    commandList.addEventListener('click', function(event) {
+    commandList.addEventListener('click', function (event) {
         const item = event.target.closest('.miller-item');
-        if (!item || !commandList.contains(item)) {
-            return;
-        }
+        if (!item || !commandList.contains(item)) return;
 
         const cmdId = item.dataset.cmdId;
         const source = isSearchMode ? currentSearchResults : currentCommands;
         const cmd = source.find(c => String(c.id) === cmdId);
-
-        if (!cmd) {
-            return;
-        }
+        if (!cmd) return;
 
         mod_insertCmd.selectedCmd = cmd;
 
@@ -1085,58 +1000,39 @@ if (!isConnect()) {
         updateSelectionSummary();
     });
 
-    commandList.addEventListener('dblclick', function(event) {
+    commandList.addEventListener('dblclick', function (event) {
         const item = event.target.closest('.miller-item');
-        if (!item || !commandList.contains(item)) {
-            return;
-        }
+        if (!item || !commandList.contains(item)) return;
 
         const cmdId = item.dataset.cmdId;
         const source = isSearchMode ? currentSearchResults : currentCommands;
         const cmd = source.find(c => String(c.id) === cmdId);
-
-        if (cmd) {
-            mod_insertCmd.execute(cmd);
-        }
+        if (cmd) mod_insertCmd.execute(cmd);
     });
 
     function updateClearButton(input) {
         const button = input?.parentElement?.querySelector('.miller-clear-input');
-        if (button) {
-            button.classList.toggle('visible', Boolean(input.value));
-        }
+        if (button) button.classList.toggle('visible', Boolean(input.value));
     }
 
     function clearInput(input) {
-        if (!input) {
-            return;
-        }
-
+        if (!input) return;
         input.value = '';
         input.dispatchEvent(new Event('input', { bubbles: true }));
         input.focus();
     }
 
-    if (clearSearchButton) {
-        clearSearchButton.addEventListener('click', () => clearInput(searchInput));
-    }
+    if (clearSearchButton) clearSearchButton.addEventListener('click', () => clearInput(searchInput));
 
     [objectFilterInput, equipmentFilterInput, commandFilterInput].forEach(input => {
-        if (!input) {
-            return;
-        }
-
+        if (!input) return;
         const clearButton = input.parentElement?.querySelector('.miller-clear-input');
-        if (clearButton) {
-            clearButton.addEventListener('click', () => clearInput(input));
-        }
+        if (clearButton) clearButton.addEventListener('click', () => clearInput(input));
     });
 
-    searchInput.addEventListener('input', function() {
+    searchInput.addEventListener('input', function () {
         updateClearButton(searchInput);
-
         const query = searchInput.value.trim();
-
         clearTimeout(searchTimer);
 
         if (query.length < SEARCH_MIN_LENGTH) {
@@ -1151,6 +1047,7 @@ if (!isConnect()) {
 
                 if (commandFilterInput) {
                     commandFilterInput.value = '';
+                    updateClearButton(commandFilterInput);
                 }
             }
 
@@ -1159,18 +1056,10 @@ if (!isConnect()) {
             equipmentColumn.style.display = 'flex';
             commandColumn.style.display = 'flex';
 
-            commandList.innerHTML = query
-                ? '<div class="miller-empty">{{Tapez au moins 2 caractères...}}</div>'
-                : '';
-
+            commandList.innerHTML = query ? '<div class="miller-empty">{{Tapez au moins 2 caractères...}}</div>' : '';
             renderObjects();
 
-            if (selectedObjectId !== null) {
-                selectedObjectId === ''
-                    ? loadAllEquipments()
-                    : loadEquipments(selectedObjectId, true);
-            }
-
+            if (selectedObjectId !== null) selectedObjectId === '' ? loadAllEquipments() : loadEquipments(selectedObjectId, true);
             return;
         }
 
@@ -1180,6 +1069,7 @@ if (!isConnect()) {
 
             if (commandFilterInput) {
                 commandFilterInput.value = '';
+                updateClearButton(commandFilterInput);
             }
         }
 
@@ -1188,7 +1078,6 @@ if (!isConnect()) {
         commandColumn.style.display = 'flex';
 
         const fullMatch = FULL_HUMAN_NAME_RE.exec(query);
-
         if (fullMatch) {
             pastedExactHumanName = `[${fullMatch[1]}][${fullMatch[2]}][${fullMatch[3]}]`;
             searchCommands(pastedExactHumanName);
@@ -1200,7 +1089,7 @@ if (!isConnect()) {
     });
 
     if (objectFilterInput) {
-        objectFilterInput.addEventListener('input', function() {
+        objectFilterInput.addEventListener('input', function () {
             updateClearButton(objectFilterInput);
             objectFilterText = objectFilterInput.value.trim();
             renderObjects();
@@ -1208,7 +1097,7 @@ if (!isConnect()) {
     }
 
     if (equipmentFilterInput) {
-        equipmentFilterInput.addEventListener('input', function() {
+        equipmentFilterInput.addEventListener('input', function () {
             updateClearButton(equipmentFilterInput);
             equipmentFilterText = equipmentFilterInput.value.trim();
             renderEquipments();
@@ -1216,7 +1105,7 @@ if (!isConnect()) {
     }
 
     if (commandFilterInput) {
-        commandFilterInput.addEventListener('input', function() {
+        commandFilterInput.addEventListener('input', function () {
             updateClearButton(commandFilterInput);
             commandFilterText = commandFilterInput.value.trim();
             isSearchMode ? renderSearchResults() : renderCommands();
@@ -1248,21 +1137,14 @@ if (!isConnect()) {
     }
 
     function updateSelectionSummary() {
-        if (!selectionSummary) {
-            return;
-        }
+        if (!selectionSummary) return;
 
         if (mod_insertCmd.selectedCmd) {
             const cmd = mod_insertCmd.selectedCmd;
-            const icon = cmd.type === 'action'
-                ? '<i class="fas fa-bolt"></i>'
-                : '<i class="fas fa-info-circle"></i>';
+            const icon = cmd.type === 'action' ? '<i class="fas fa-bolt"></i>' : '<i class="fas fa-info-circle"></i>';
 
             selectionSummary.classList.remove('cmd-info', 'cmd-action');
-
-            if (cmd.type === 'info' || cmd.type === 'action') {
-                selectionSummary.classList.add(`cmd-${cmd.type}`);
-            }
+            if (cmd.type === 'info' || cmd.type === 'action') selectionSummary.classList.add(`cmd-${cmd.type}`);
 
             const path = String(cmd.humanName || cmd.name || '')
                 .replace(/^\[/, '')
@@ -1281,20 +1163,14 @@ if (!isConnect()) {
 
         if (selectedObjectId !== null) {
             const objName = getObjectNameById(selectedObjectId);
-
             if (objName) {
-                parts.push(
-                    `${selectedObjectId === '' ? '<i class="fas fa-ban"></i>' : '<i class="far fa-object-group"></i>'} ${escapeHtml(objName)}`
-                );
+                parts.push(`${selectedObjectId === '' ? '<i class="fas fa-ban"></i>' : '<i class="far fa-object-group"></i>'} ${escapeHtml(objName)}`);
             }
         }
 
         if (selectedEqLogicId) {
             const eqName = getSelectedEqLogicName();
-
-            if (eqName) {
-                parts.push(`<i class="fas fa-puzzle-piece"></i> ${escapeHtml(eqName)}`);
-            }
+            if (eqName) parts.push(`<i class="fas fa-puzzle-piece"></i> ${escapeHtml(eqName)}`);
         }
 
         selectionSummary.innerHTML = parts.length
@@ -1309,23 +1185,14 @@ if (!isConnect()) {
 
     function highlightMatch(text, query) {
         const value = String(text ?? '');
-
-        if (!query) {
-            return escapeHtml(value);
-        }
+        if (!query) return escapeHtml(value);
 
         const normalizedValue = normalizeText(value);
         const normalizedQuery = normalizeText(query);
-
-        if (!normalizedQuery || normalizedValue.length !== value.length) {
-            return escapeHtml(value);
-        }
+        if (!normalizedQuery || normalizedValue.length !== value.length) return escapeHtml(value);
 
         const startIndex = normalizedValue.indexOf(normalizedQuery);
-
-        if (startIndex === -1) {
-            return escapeHtml(value);
-        }
+        if (startIndex === -1) return escapeHtml(value);
 
         const endIndex = startIndex + normalizedQuery.length;
         const before = value.slice(0, startIndex);
@@ -1341,7 +1208,7 @@ if (!isConnect()) {
     updateClearButton(objectFilterInput);
     updateClearButton(equipmentFilterInput);
     updateClearButton(commandFilterInput);
-
+    
     setTimeout(() => searchInput.focus(), 100);
 })();
 </script>
