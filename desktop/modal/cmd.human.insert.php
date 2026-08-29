@@ -601,6 +601,7 @@ if (!isConnect()) {
 
             div.className = `miller-item${selectedObjectId === option.id ? ' selected' : ''}`;
             div.dataset.objectId = option.id;
+            div.title = option.name;
             div.innerHTML = `<span class="miller-item-name">${isNone ? '<i class="fas fa-ban"></i>' : '<i class="far fa-object-group"></i>'} ${highlightMatch(option.name, objectFilterText)}</span>`;
 
             fragment.appendChild(div);
@@ -729,6 +730,7 @@ if (!isConnect()) {
 
             div.className = `miller-item${selectedEqLogicId === eqId ? ' selected' : ''}`;
             div.dataset.eqId = eqId;
+            div.title = String(eqLogic.name || '');
             div.innerHTML = `<span class="miller-item-name"><i class="fas fa-puzzle-piece"></i> ${highlightMatch(String(eqLogic.name || ''), equipmentFilterText)}</span>`;
 
             fragment.appendChild(div);
@@ -857,6 +859,7 @@ if (!isConnect()) {
 
             div.className = `miller-item cmd-${cmd.type || 'info'}${isSelected ? ' selected' : ''}`;
             div.dataset.cmdId = String(cmd.id);
+            div.title = cmd.humanName || cmd.name;
             div.innerHTML = `<span class="miller-item-name">${icon} ${highlightMatch(cmd.name, commandFilterText)}</span><span class="badge-id">ID ${escapeHtml(cmd.id)}</span>`;
 
             fragment.appendChild(div);
@@ -996,6 +999,7 @@ if (!isConnect()) {
 
             div.className = `miller-item cmd-${cmd.type || 'info'}${isSelected ? ' selected' : ''}${isExactMatch ? ' miller-item-exact' : ''}`;
             div.dataset.cmdId = String(cmd.id);
+            div.title = cmd.humanName || cmd.name || '';
             const highlightQuery = commandFilterText || lastSearchQuery;
             div.innerHTML = `<div class="miller-search-result"><div class="miller-search-human">${icon} ${highlightMatch(cmd.humanName || '', highlightQuery)}${exactBadge}</div><div class="miller-search-path">ID ${escapeHtml(String(cmd.id || ''))}</div></div>`;
 
