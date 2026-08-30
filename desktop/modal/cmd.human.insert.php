@@ -32,12 +32,12 @@ if (!isConnect()) {
     --miller-text-muted: #888;
     --miller-badge: rgba(0, 0, 0, 0.3);
     --miller-summary-bg: rgba(0, 122, 204, 0.12);
-
     display: flex;
     flex-direction: column;
     gap: 12px;
-    height: 500px;
-    max-height: 70vh;
+    height: min(500px, 70vh);
+    max-height: min(500px, 70vh);
+    box-sizing: border-box;
     margin: 0;
     padding: 5px;
     color: var(--miller-text);
@@ -55,7 +55,8 @@ if (!isConnect()) {
     --miller-badge: rgba(0, 0, 0, 0.05);
     --miller-summary-bg: rgba(0, 122, 204, 0.08);
 }
-.miller-search-bar, .miller-filter-wrapper { 
+
+.miller-search-bar, .miller-filter-wrapper {
     position: relative;
 }
 
@@ -87,8 +88,8 @@ if (!isConnect()) {
     opacity: 1;
 }
 
-.miller-search-bar input:focus, .miller-col-filter:focus { 
-    border-color: var(--al-primary-color); 
+.miller-search-bar input:focus, .miller-col-filter:focus {
+    border-color: var(--al-primary-color);
 }
 
 .miller-search-loading {
@@ -126,8 +127,8 @@ if (!isConnect()) {
     color: var(--miller-text);
 }
 
-.miller-clear-input.visible { 
-    display: block; 
+.miller-clear-input.visible {
+    display: block;
 }
 
 .miller-selection-summary {
@@ -142,27 +143,28 @@ if (!isConnect()) {
     text-overflow: ellipsis;
 }
 
-.miller-selection-summary.cmd-info { 
-    border-color: var(--al-info-color); 
+.miller-selection-summary.cmd-info {
+    border-color: var(--al-info-color);
 }
 
-.miller-selection-summary.cmd-action { 
-    border-color: var(--al-warning-color); 
+.miller-selection-summary.cmd-action {
+    border-color: var(--al-warning-color);
 }
 
-.miller-selection-summary .miller-selection-empty { 
-    opacity: 0.6; 
-    font-style: italic; 
+.miller-selection-summary .miller-selection-empty {
+    opacity: 0.6;
+    font-style: italic;
 }
 
-.miller-selection-summary .miller-selection-sep { 
-    margin: 0 4px; 
-    opacity: 0.5; 
+.miller-selection-summary .miller-selection-sep {
+    margin: 0 4px;
+    opacity: 0.5;
 }
 
 .miller-columns-wrapper {
     display: flex;
     flex: 1;
+    min-height: 0;
     overflow: hidden;
     border: 1px solid var(--miller-border);
     border-radius: 6px;
@@ -174,11 +176,12 @@ if (!isConnect()) {
     flex: 1;
     flex-direction: column;
     min-width: 0;
+    min-height: 0;
     border-right: 1px solid var(--miller-border-light);
 }
 
-.miller-col:last-child { 
-    border-right: none; 
+.miller-col:last-child {
+    border-right: none;
 }
 
 .miller-col-header {
@@ -209,9 +212,10 @@ if (!isConnect()) {
     font-size: 12px;
 }
 
-.miller-col-content { 
-    flex: 1; 
-    overflow-y: auto; 
+.miller-col-content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
     padding: 4px 0;
 }
 
@@ -229,19 +233,19 @@ if (!isConnect()) {
     transition: background 0.1s;
 }
 
-.miller-item:hover { 
+.miller-item:hover {
     background: var(--miller-bg-hover);
 }
 
-.miller-item.selected { 
-    background: var(--btn-default-color) !important; 
-    color: #fff !important; 
+.miller-item.selected {
+    background: var(--btn-default-color) !important;
+    color: #fff !important;
 }
 
-.miller-item .miller-item-name { 
-    min-width: 0; 
-    overflow: hidden; 
-    text-overflow: ellipsis; 
+.miller-item .miller-item-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .miller-item .badge-id {
@@ -255,37 +259,38 @@ if (!isConnect()) {
     opacity: 0.8;
 }
 
-.miller-item.cmd-action { 
-    color: var(--al-warning-color); 
+.miller-item.cmd-action {
+    color: var(--al-warning-color);
 }
 
-.miller-item.cmd-info { 
-    color: var(--al-info-color)
+.miller-item.cmd-info {
+    color: var(--al-info-color);
 }
 
-.miller-item.selected.cmd-action, .miller-item.selected.cmd-info { 
-    color: #fff; 
+.miller-item.selected.cmd-action, .miller-item.selected.cmd-info {
+    color: #fff;
 }
 
-.miller-search-result { 
-    display: flex; 
-    flex-direction: column; 
-    width: 100%; 
-    overflow: hidden; 
+.miller-search-result {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow: hidden;
 }
 
-.miller-search-human, .miller-search-path { 
-    overflow: hidden; 
-    text-overflow: ellipsis; 
-}
-.miller-search-path { 
-    margin-top: 2px; 
-    color: var(--miller-text-muted); 
-    font-size: 10px; 
+.miller-search-human, .miller-search-path {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.miller-item.miller-item-exact { 
-    border-left: 3px solid var(--al-primary-color); 
+.miller-search-path {
+    margin-top: 2px;
+    color: var(--miller-text-muted);
+    font-size: 10px;
+}
+
+.miller-item.miller-item-exact {
+    border-left: 3px solid var(--al-primary-color);
 }
 
 .miller-match {
@@ -309,17 +314,17 @@ if (!isConnect()) {
     white-space: nowrap;
 }
 
-.miller-empty, .miller-error { 
-    padding: 12px; 
-    font-size: 13px; 
+.miller-empty, .miller-error {
+    padding: 12px;
+    font-size: 13px;
 }
 
-.miller-empty { 
-    color: var(--miller-text-muted); 
+.miller-empty {
+    color: var(--miller-text-muted);
 }
 
-.miller-error { 
-    color: var(--al-danger-color); 
+.miller-error {
+    color: var(--al-danger-color);
 }
 
 .miller-search-truncated {
@@ -351,7 +356,9 @@ if (!isConnect()) {
         <span id="miller_search_loading" class="miller-search-loading"><i class="fas fa-spinner fa-spin"></i></span>
         <button type="button" class="miller-clear-input" id="clear_miller_search" aria-label="{{Effacer}}"><i class="fas fa-times"></i></button>
     </div>
-    <div id="div_miller_selection_summary" class="miller-selection-summary"><span class="miller-selection-empty">{{Aucune sélection}}</span></div>
+    <div id="div_miller_selection_summary" class="miller-selection-summary">
+        <span class="miller-selection-empty">{{Aucune sélection}}</span>
+    </div>
     <div class="miller-columns-wrapper">
         <div class="miller-col" id="col_miller_objects">
             <div class="miller-col-header">
@@ -411,6 +418,17 @@ if (!isConnect()) {
     const container = document.getElementById('div_cmdHumanInsert');
     if (!container) return;
 
+    const dialog = container.closest('.jeeDialog');
+
+    function resizeCmdHumanDialog() {
+        if (!dialog) return;
+        const height = Math.min(500, Math.floor(window.innerHeight * 0.8));
+        dialog.style.height = `${height}px`;
+    }
+
+    resizeCmdHumanDialog();
+    window.addEventListener('resize', resizeCmdHumanDialog);
+
     const searchInput = document.getElementById('in_cmdHumanInsertSearch');
     const clearSearchButton = document.getElementById('clear_miller_search');
     const searchLoading = document.getElementById('miller_search_loading');
@@ -446,10 +464,12 @@ if (!isConnect()) {
     const objectOptions = (() => {
         const select = document.createElement('select');
         select.innerHTML = objectSelectHtml;
-        return Array.from(select.options).map(option => ({
-            id: String(option.value || ''),
-            name: option.textContent.trim()
-        })).sort((a, b) => alphaCompare(a.name, b.name));
+        return Array.from(select.options)
+            .map(option => ({
+                id: String(option.value || ''),
+                name: option.textContent.trim()
+            }))
+            .sort((a, b) => alphaCompare(a.name, b.name));
     })();
 
     const objectsById = new Map(objectOptions.map(o => [o.id, o]));
@@ -479,8 +499,11 @@ if (!isConnect()) {
             return;
         }
         requestAnimationFrame(() => {
-            if (name.scrollWidth > name.clientWidth) item.title = name.textContent.trim();
-            else item.removeAttribute('title');
+            if (name.scrollWidth > name.clientWidth) {
+                item.title = name.textContent.trim();
+            } else {
+                item.removeAttribute('title');
+            }
         });
     }
 
@@ -615,7 +638,8 @@ if (!isConnect()) {
             const div = document.createElement('div');
             div.className = `miller-item${selectedObjectId === option.id ? ' selected' : ''}`;
             div.dataset.objectId = option.id;
-            div.innerHTML = `<span class="miller-item-name">${isNone ? '<i class="fas fa-ban"></i>' : '<i class="far fa-object-group"></i>'} ${highlightMatch(option.name, objectFilterText)}</span>`;
+            const icon = isNone ? '<i class="fas fa-ban"></i>' : '<i class="far fa-object-group"></i>';
+            div.innerHTML = `<span class="miller-item-name">${icon} ${highlightMatch(option.name, objectFilterText)}</span>`;
             fragment.appendChild(div);
             updateEllipsisTooltip(div);
         });
@@ -761,7 +785,7 @@ if (!isConnect()) {
 
         jeedom.eqLogic.buildSelectCmd({
             id: eqLogicId,
-            filter: filter,
+            filter,
             error: function (error) {
                 isInitialLoad = false;
                 commandList.innerHTML = `<div class="miller-error">${escapeHtml(error && error.message ? error.message : '{{Erreur de chargement}}')}</div>`;
@@ -864,7 +888,7 @@ if (!isConnect()) {
             url: 'core/ajax/cmd.human.insert.ajax.php',
             data: {
                 action: 'search',
-                query: query,
+                query,
                 type: cmdFilter.type || '',
                 subType: cmdFilter.subType || '',
                 limit: 100
@@ -876,9 +900,13 @@ if (!isConnect()) {
                 searchLoading.style.display = 'none';
 
                 let message = '{{Erreur lors de la recherche}}';
-                if (typeof error === 'string') message = error;
-                else if (error && error.message) message = error.message;
-                else if (error && error.responseJSON && error.responseJSON.message) message = error.responseJSON.message;
+                if (typeof error === 'string') {
+                    message = error;
+                } else if (error && error.message) {
+                    message = error.message;
+                } else if (error && error.responseJSON && error.responseJSON.message) {
+                    message = error.responseJSON.message;
+                }
 
                 commandList.innerHTML = `<div class="miller-error">${escapeHtml(message)}</div>`;
             },
@@ -887,8 +915,11 @@ if (!isConnect()) {
                 searchLoading.style.display = 'none';
 
                 let results = [];
-                if (data && Array.isArray(data.result)) results = data.result;
-                else if (Array.isArray(data)) results = data;
+                if (data && Array.isArray(data.result)) {
+                    results = data.result;
+                } else if (Array.isArray(data)) {
+                    results = data;
+                }
 
                 searchHasMore = false;
                 const lastResult = results[results.length - 1];
@@ -971,13 +1002,17 @@ if (!isConnect()) {
         commandList.appendChild(fragment);
     }
 
+    function getCommandFromList(item) {
+        const cmdId = item.dataset.cmdId;
+        const source = isSearchMode ? currentSearchResults : currentCommands;
+        return source.find(c => String(c.id) === cmdId);
+    }
+
     commandList.addEventListener('click', function (event) {
         const item = event.target.closest('.miller-item');
         if (!item || !commandList.contains(item)) return;
 
-        const cmdId = item.dataset.cmdId;
-        const source = isSearchMode ? currentSearchResults : currentCommands;
-        const cmd = source.find(c => String(c.id) === cmdId);
+        const cmd = getCommandFromList(item);
         if (!cmd) return;
 
         mod_insertCmd.selectedCmd = cmd;
@@ -996,9 +1031,7 @@ if (!isConnect()) {
         const item = event.target.closest('.miller-item');
         if (!item || !commandList.contains(item)) return;
 
-        const cmdId = item.dataset.cmdId;
-        const source = isSearchMode ? currentSearchResults : currentCommands;
-        const cmd = source.find(c => String(c.id) === cmdId);
+        const cmd = getCommandFromList(item);
         if (cmd) mod_insertCmd.execute(cmd);
     });
 
@@ -1200,7 +1233,7 @@ if (!isConnect()) {
     updateClearButton(objectFilterInput);
     updateClearButton(equipmentFilterInput);
     updateClearButton(commandFilterInput);
-    
+
     setTimeout(() => searchInput.focus(), 100);
 })();
 </script>
