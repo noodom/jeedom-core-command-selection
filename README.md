@@ -294,22 +294,6 @@ En cas d'erreur :
 
 ---
 
-# Mise à jour du patch
-
-Pour mettre à jour le patch :
-
-1. Mettre à jour les fichiers patchés dans le dépôt.
-2. Mettre à jour les scripts d'installation et de désinstallation si nécessaire.
-3. Exécuter à nouveau le scénario contenant `commandSelectionPatchInstall.php`.
-
-Le script compare automatiquement les fichiers présents sur l'installation avec les versions disponibles dans le dépôt.
-
-Si le fichier a changé, il est remplacé.
-
-Le backup original existant est conservé et n'est jamais écrasé.
-
----
-
 # Mise à jour de Jeedom
 
 Le patch modifie directement le Core Jeedom.
