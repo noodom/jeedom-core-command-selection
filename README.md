@@ -9,9 +9,11 @@ Patch du Core Jeedom destiné à améliorer la sélection des commandes dans la 
 
 ## Fonctionnalités
 
-* Modification de la modale de sélection des commandes humaines.
-* Ajout du traitement AJAX associé.
+* Modification de la modale de sélection des commandes Jeedom (info et action).
 * Recherche et sélection améliorées.
+
+## Installation
+
 * Installation et désinstallation automatisées.
 * Scripts d'installation et de désinstallation indépendants.
 * Utilisation directe depuis des scénarios Jeedom.
@@ -166,26 +168,6 @@ Aucune modification du script n'est nécessaire.
 
 ---
 
-# Installation idempotente
-
-Le script peut être exécuté plusieurs fois.
-
-Avant de remplacer le fichier Core, il compare le fichier existant avec la version téléchargée.
-
-Si les fichiers sont identiques :
-
-```text
-cmd.human.insert.php déjà installé
-```
-
-Aucun remplacement inutile n'est effectué.
-
-Le même principe est appliqué au fichier AJAX.
-
-Cela permet notamment de relancer le scénario d'installation sans générer de modifications inutiles.
-
----
-
 # Gestion du backup
 
 Lors de la première installation, le fichier original :
@@ -298,41 +280,6 @@ En cas d'erreur :
 
 ---
 
-# Sources des fichiers
-
-Les fichiers installés sont présents dans le dépôt :
-
-```text
-/desktop/modal/cmd.human.insert.php
-/core/ajax/cmd.human.insert.ajax.php
-```
-
-Les scripts d'installation et de désinstallation récupèrent ces fichiers directement depuis la branche `main`.
-
----
-
-# Structure du dépôt
-
-```text
-.
-├── README.md
-├── desktop/
-│   └── modal/
-│       └── cmd.human.insert.php
-│
-├── core/
-│   └── ajax/
-│       └── cmd.human.insert.ajax.php
-│
-└── corePatchInstallation/
-    ├── commandSelectionPatchInstall.php
-    └── commandSelectionPatchUninstall.php
-```
-
-Les fichiers situés dans `corePatchInstallation/` sont destinés à être copiés directement dans les blocs **Code** des scénarios Jeedom.
-
----
-
 # Mise à jour du patch
 
 Pour mettre à jour le patch :
@@ -441,11 +388,3 @@ Ce projet contient des modifications destinées au Core Jeedom.
 Le code original provenant de Jeedom reste soumis à sa licence d'origine.
 
 Les fichiers de ce dépôt doivent être utilisés conformément aux conditions de licence applicables au projet Jeedom.
-
----
-
-# Auteur
-
-**noodom**
-
-Patch développé pour Jeedom.
