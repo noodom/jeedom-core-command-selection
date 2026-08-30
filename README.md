@@ -1,4 +1,4 @@
-# Jeedom Core Patch
+# Jeedom Core Patch for Command Selection
 
 Patch du Core Jeedom destiné à améliorer la sélection des commandes dans la modale de sélection des commandes humaines.
 
