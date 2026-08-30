@@ -6,6 +6,14 @@ Patch du Core Jeedom destiné à améliorer la sélection des commandes dans la 
 > Un mécanisme de sauvegarde, de vérification et de rollback est intégré afin de permettre un retour à l'état original.
 
 ---
+Recherche par arborescence objet / équipement / commande
+<img width="829" height="534" alt="image" src="https://github.com/user-attachments/assets/174eb31e-249e-48a5-a770-b7a6b8db2d5e" />
+
+Recherche par libellé d'objet, d'équipement ou de commande
+<img width="824" height="530" alt="image" src="https://github.com/user-attachments/assets/a4bdc9b6-feb6-494d-bce9-fb30f8cc9f30" />
+
+Recherche par id de commande
+<img width="820" height="525" alt="image" src="https://github.com/user-attachments/assets/1ab327c5-b1f1-4d46-bf93-36be3a7a6dfe" />
 
 ## Fonctionnalités
 
