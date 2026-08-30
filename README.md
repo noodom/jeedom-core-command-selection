@@ -1,6 +1,6 @@
 # Jeedom Core Patch for Command Selection
 
-Patch du Core Jeedom destiné à améliorer la sélection des commandes dans la modale de sélection des commandes humaines.
+Patch du Core Jeedom destiné à améliorer la sélection des commandes dans la modale de sélection des commandes Jeedom (infos et actions).
 
 > ⚠️ Ce projet modifie directement des fichiers du Core Jeedom.
 > Un mécanisme de sauvegarde, de vérification et de rollback est intégré afin de permettre un retour à l'état original.
