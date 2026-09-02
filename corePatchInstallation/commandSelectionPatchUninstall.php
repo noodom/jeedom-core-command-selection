@@ -1,43 +1,47 @@
 /*
  * Jeedom Core Patch
  *
- * Ce script permet d'installer ou de désinstaller un patch du Core Jeedom.
+ * Installation / désinstallation du patch de sélection des commandes humaines.
  *
- * Fichiers concernés :
+ * Fichiers :
  * - /desktop/modal/cmd.human.insert.php
- *   Fichier Core modifié et sauvegardé avant remplacement.
- *
  * - /core/ajax/cmd.human.insert.ajax.php
- *   Nouveau fichier ajouté au Core Jeedom.
- *
- * Installation :
- * - Télécharge les fichiers patchés depuis GitHub.
- * - Vérifie leur syntaxe PHP avant installation.
- * - Sauvegarde le fichier Core original avant remplacement.
- * - Installe le fichier AJAX supplémentaire.
- * - Vérifie les fichiers après installation.
- * - Effectue automatiquement un rollback en cas d'erreur.
- *
- * Désinstallation :
- * - Restaure le fichier Core original depuis le backup.
- * - Supprime le fichier AJAX ajouté par le patch.
- * - Supprime le backup après restauration réussie.
- *
- * Le script est conçu pour permettre une installation réversible
- * du patch sans modification permanente du Core Jeedom.
- *
- * Auteur : noodom
+ * - /core/ajax/object.ajax.php
+ * - /core/class/jeeObject.class.php
  */
 
 $action = "desinstaller";
 // $action = "installer";
 
-$replaceUrl = "https://raw.githubusercontent.com/noodom/jeedom-core-command-selection/refs/heads/main/desktop/modal/cmd.human.insert.php";
-$replaceFile = "/var/www/html/desktop/modal/cmd.human.insert.php";
-$replaceBackup = $replaceFile . ".corepatch-backup";
-
-$addUrl = "https://raw.githubusercontent.com/noodom/jeedom-core-command-selection/refs/heads/main/core/ajax/cmd.human.insert.ajax.php";
-$addFile = "/var/www/html/core/ajax/cmd.human.insert.ajax.php";
+$files = [
+    [
+        "url" => "https://raw.githubusercontent.com/noodom/jeedom-core-command-selection/refs/heads/beta/desktop/modal/cmd.human.insert.php",
+        "file" => "/var/www/html/desktop/modal/cmd.human.insert.php",
+        "backup" => "/var/www/html/desktop/modal/cmd.human.insert.php.corepatch-backup",
+        "name" => "cmd.human.insert.php",
+        "replace" => true
+    ],
+    [
+        "url" => "https://raw.githubusercontent.com/noodom/jeedom-core-command-selection/refs/heads/beta/core/ajax/cmd.human.insert.ajax.php",
+        "file" => "/var/www/html/core/ajax/cmd.human.insert.ajax.php",
+        "name" => "cmd.human.insert.ajax.php",
+        "replace" => false
+    ],
+    [
+        "url" => "https://raw.githubusercontent.com/noodom/jeedom-core-command-selection/refs/heads/beta/core/ajax/object.ajax.php",
+        "file" => "/var/www/html/core/ajax/object.ajax.php",
+        "backup" => "/var/www/html/core/ajax/object.ajax.php.corepatch-backup",
+        "name" => "object.ajax.php",
+        "replace" => true
+    ],
+    [
+        "url" => "https://raw.githubusercontent.com/noodom/jeedom-core-command-selection/refs/heads/beta/core/class/jeeObject.class.php",
+        "file" => "/var/www/html/core/class/jeeObject.class.php",
+        "backup" => "/var/www/html/core/class/jeeObject.class.php.corepatch-backup",
+        "name" => "jeeObject.class.php",
+        "replace" => true
+    ]
+];
 
 function corePatchLog($level, $message) {
     global $scenario;
@@ -45,31 +49,20 @@ function corePatchLog($level, $message) {
 }
 
 function corePatchDownload($url, $target) {
-    $context = stream_context_create([
-        "http" => [
-            "timeout" => 30,
-            "user_agent" => "Jeedom-Core-Patch",
-            "follow_location" => true,
-        ],
-    ]);
-
+    $context = stream_context_create(["http" => ["timeout" => 30, "user_agent" => "Jeedom-Core-Patch", "follow_location" => true]]);
     $content = @file_get_contents($url, false, $context);
-
     if ($content === false || trim($content) === "") {
-        throw new Exception("Téléchargement impossible");
+        throw new Exception("Téléchargement impossible : " . $url);
     }
-
     if (@file_put_contents($target, $content) === false) {
-        throw new Exception("Impossible d'écrire le fichier temporaire");
+        throw new Exception("Impossible d'écrire le fichier temporaire : " . $target);
     }
 }
 
 function corePatchCheckPhp($file) {
     $output = [];
     $returnCode = 0;
-
     exec("php -l " . escapeshellarg($file) . " 2>&1", $output, $returnCode);
-
     if ($returnCode !== 0) {
         throw new Exception("Syntaxe PHP invalide : " . implode(" ", $output));
     }
@@ -86,60 +79,38 @@ if (!in_array($action, ["installer", "desinstaller"], true)) {
 }
 
 /*
- * ============================================================
  * DESINSTALLATION
- * ============================================================
  */
-
 if ($action === "desinstaller") {
     corePatchLog("info", "========================================");
     corePatchLog("info", "Désinstallation du patch Core");
     corePatchLog("info", "========================================");
 
-    /*
-     * Restauration du fichier Core.
-     *
-     * Le fichier AJAX est traité indépendamment.
-     */
-
-    if (file_exists($replaceBackup)) {
-        corePatchLog("info", "Backup trouvé : restauration de cmd.human.insert.php");
-
-        if (!@copy($replaceBackup, $replaceFile)) {
-            throw new Exception("Impossible de restaurer " . $replaceFile);
+    foreach ($files as $item) {
+        if (!empty($item["replace"])) {
+            if (file_exists($item["backup"])) {
+                corePatchLog("info", "Backup trouvé : restauration de " . $item["name"]);
+                if (!@copy($item["backup"], $item["file"])) {
+                    throw new Exception("Impossible de restaurer " . $item["file"]);
+                }
+                corePatchSetPermissions($item["file"]);
+                corePatchCheckPhp($item["file"]);
+                if (!@unlink($item["backup"])) {
+                    throw new Exception("Impossible de supprimer le backup " . $item["backup"]);
+                }
+                corePatchLog("info", $item["name"] . " restauré avec succès");
+            } else {
+                corePatchLog("info", "Aucun backup trouvé pour " . $item["name"] . " : aucune restauration effectuée");
+            }
         }
-
-        corePatchSetPermissions($replaceFile);
-        corePatchCheckPhp($replaceFile);
-
-        /*
-         * Suppression du backup uniquement après
-         * une restauration réussie.
-         */
-
-        if (!@unlink($replaceBackup)) {
-            throw new Exception("Impossible de supprimer le backup");
-        }
-
-        corePatchLog("info", "cmd.human.insert.php restauré avec succès");
-    } else {
-        corePatchLog("info", "Aucun backup trouvé : aucune restauration effectuée");
     }
 
-    /*
-     * Suppression du fichier AJAX.
-     *
-     * Cette opération est totalement indépendante
-     * de la restauration du fichier Core.
-     */
-
-    if (file_exists($addFile)) {
+    $ajaxFile = $files[1]["file"];
+    if (file_exists($ajaxFile)) {
         corePatchLog("info", "cmd.human.insert.ajax.php trouvé : suppression");
-
-        if (!@unlink($addFile)) {
-            throw new Exception("Impossible de supprimer " . $addFile);
+        if (!@unlink($ajaxFile)) {
+            throw new Exception("Impossible de supprimer " . $ajaxFile);
         }
-
         corePatchLog("info", "cmd.human.insert.ajax.php supprimé avec succès");
     } else {
         corePatchLog("info", "cmd.human.insert.ajax.php déjà absent");
@@ -148,175 +119,117 @@ if ($action === "desinstaller") {
     corePatchLog("info", "========================================");
     corePatchLog("info", "Désinstallation terminée");
     corePatchLog("info", "========================================");
-
     return;
 }
 
 /*
- * ============================================================
  * INSTALLATION
- * ============================================================
  */
-
 corePatchLog("info", "========================================");
-corePatchLog("info", "Installation du patch Core");
+corePatchLog("info", "Installation du patch Core beta");
 corePatchLog("info", "========================================");
 
-$tempReplace = sys_get_temp_dir() . "/jeedom-core-patch-cmd.human.insert.php";
-$tempAdd = sys_get_temp_dir() . "/jeedom-core-patch-cmd.human.insert.ajax.php";
-
-$replaceChanged = false;
-$addChanged = false;
+$tempFiles = [];
+$changedFiles = [];
 
 try {
-    /*
-     * Téléchargement du fichier Core à remplacer
-     */
+    foreach ($files as $index => $item) {
+        $temp = sys_get_temp_dir() . "/jeedom-core-patch-" . $item["name"];
+        $tempFiles[$index] = $temp;
 
-    corePatchLog("info", "Téléchargement de cmd.human.insert.php");
-    corePatchDownload($replaceUrl, $tempReplace);
-    corePatchCheckPhp($tempReplace);
-    corePatchLog("info", "cmd.human.insert.php téléchargé et valide");
+        corePatchLog("info", "Téléchargement de " . $item["name"]);
+        corePatchDownload($item["url"], $temp);
+        corePatchCheckPhp($temp);
+        corePatchLog("info", $item["name"] . " téléchargé et valide");
 
-    /*
-     * Téléchargement du fichier AJAX
-     */
-
-    corePatchLog("info", "Téléchargement de cmd.human.insert.ajax.php");
-    corePatchDownload($addUrl, $tempAdd);
-    corePatchCheckPhp($tempAdd);
-    corePatchLog("info", "cmd.human.insert.ajax.php téléchargé et valide");
-
-    /*
-     * Vérification du fichier Core
-     */
-
-    if (!file_exists($replaceFile)) {
-        throw new Exception("Fichier Core introuvable : " . $replaceFile);
+        if (!file_exists($item["file"]) && !empty($item["replace"])) {
+            throw new Exception("Fichier Core introuvable : " . $item["file"]);
+        }
     }
 
-    /*
-     * Vérifier si le fichier Core est déjà identique
-     */
+    foreach ($files as $index => $item) {
+        $temp = $tempFiles[$index];
 
-    $replaceAlreadyInstalled = md5_file($replaceFile) === md5_file($tempReplace);
+        if (!empty($item["replace"])) {
+            $alreadyInstalled = md5_file($item["file"]) === md5_file($temp);
 
-    /*
-     * Création du backup.
-     *
-     * Le backup existant n'est jamais écrasé.
-     */
-
-    if (!$replaceAlreadyInstalled) {
-        if (!file_exists($replaceBackup)) {
-            corePatchLog("info", "Création du backup du fichier Core original");
-
-            if (!@copy($replaceFile, $replaceBackup)) {
-                throw new Exception("Impossible de créer le backup");
+            if ($alreadyInstalled) {
+                corePatchLog("info", $item["name"] . " déjà installé");
+                continue;
             }
 
-            corePatchSetPermissions($replaceBackup);
-            corePatchLog("info", "Backup créé");
+            if (!file_exists($item["backup"])) {
+                corePatchLog("info", "Création du backup de " . $item["name"]);
+                if (!@copy($item["file"], $item["backup"])) {
+                    throw new Exception("Impossible de créer le backup de " . $item["name"]);
+                }
+                corePatchSetPermissions($item["backup"]);
+                corePatchLog("info", "Backup créé");
+            } else {
+                corePatchLog("info", "Backup déjà présent : conservation du backup existant");
+            }
+
+            corePatchLog("info", "Remplacement de " . $item["name"]);
+            if (!@copy($temp, $item["file"])) {
+                throw new Exception("Impossible de remplacer " . $item["file"]);
+            }
+            corePatchSetPermissions($item["file"]);
+            corePatchCheckPhp($item["file"]);
+            $changedFiles[] = $index;
+            corePatchLog("info", $item["name"] . " remplacé avec succès");
         } else {
-            corePatchLog("info", "Backup déjà présent : conservation du backup existant");
+            $alreadyInstalled = file_exists($item["file"]) && md5_file($item["file"]) === md5_file($temp);
+
+            if ($alreadyInstalled) {
+                corePatchLog("info", $item["name"] . " déjà installé");
+                continue;
+            }
+
+            corePatchLog("info", file_exists($item["file"]) ? $item["name"] . " existe déjà : remplacement" : "Création de " . $item["name"]);
+            if (!@copy($temp, $item["file"])) {
+                throw new Exception("Impossible d'installer " . $item["file"]);
+            }
+            corePatchSetPermissions($item["file"]);
+            corePatchCheckPhp($item["file"]);
+            $changedFiles[] = $index;
+            corePatchLog("info", $item["name"] . " installé avec succès");
         }
     }
 
-    /*
-     * Remplacement du fichier Core
-     */
-
-    if (!$replaceAlreadyInstalled) {
-        corePatchLog("info", "Remplacement de cmd.human.insert.php");
-
-        if (!@copy($tempReplace, $replaceFile)) {
-            throw new Exception("Impossible de remplacer " . $replaceFile);
-        }
-
-        corePatchSetPermissions($replaceFile);
-        corePatchCheckPhp($replaceFile);
-        $replaceChanged = true;
-
-        corePatchLog("info", "cmd.human.insert.php remplacé avec succès");
-    } else {
-        corePatchLog("info", "cmd.human.insert.php déjà installé");
+    foreach ($tempFiles as $temp) {
+        @unlink($temp);
     }
-
-    /*
-     * Installation du fichier AJAX
-     */
-
-    $addAlreadyInstalled = file_exists($addFile) && md5_file($addFile) === md5_file($tempAdd);
-
-    if ($addAlreadyInstalled) {
-        corePatchLog("info", "cmd.human.insert.ajax.php déjà installé");
-    } else {
-        if (file_exists($addFile)) {
-            corePatchLog("info", "cmd.human.insert.ajax.php existe déjà : remplacement");
-        } else {
-            corePatchLog("info", "Création de cmd.human.insert.ajax.php");
-        }
-
-        if (!@copy($tempAdd, $addFile)) {
-            throw new Exception("Impossible d'installer " . $addFile);
-        }
-
-        corePatchSetPermissions($addFile);
-        corePatchCheckPhp($addFile);
-        $addChanged = true;
-
-        corePatchLog("info", "cmd.human.insert.ajax.php installé avec succès");
-    }
-
-    /*
-     * Nettoyage
-     */
-
-    @unlink($tempReplace);
-    @unlink($tempAdd);
 
     corePatchLog("info", "========================================");
-    corePatchLog("info", "Patch Core installé avec succès");
+    corePatchLog("info", "Patch Core beta installé avec succès");
     corePatchLog("info", "========================================");
 } catch (Exception $e) {
     corePatchLog("error", "Erreur : " . $e->getMessage());
     corePatchLog("error", "Rollback automatique en cours");
 
-    /*
-     * Restaurer le fichier Core uniquement
-     * si cette exécution l'a modifié.
-     */
+    foreach ($changedFiles as $index) {
+        $item = $files[$index];
 
-    if ($replaceChanged && file_exists($replaceBackup)) {
-        if (@copy($replaceBackup, $replaceFile)) {
-            corePatchSetPermissions($replaceFile);
-            corePatchLog("info", "cmd.human.insert.php restauré");
-        } else {
-            corePatchLog("error", "Impossible de restaurer cmd.human.insert.php");
+        if (!empty($item["replace"])) {
+            if (file_exists($item["backup"]) && @copy($item["backup"], $item["file"])) {
+                corePatchSetPermissions($item["file"]);
+                corePatchLog("info", $item["name"] . " restauré");
+            } else {
+                corePatchLog("error", "Impossible de restaurer " . $item["name"]);
+            }
+        } elseif (file_exists($item["file"])) {
+            if (@unlink($item["file"])) {
+                corePatchLog("info", $item["name"] . " supprimé");
+            } else {
+                corePatchLog("error", "Impossible de supprimer " . $item["name"]);
+            }
         }
     }
 
-    /*
-     * Supprimer le fichier AJAX uniquement
-     * si cette exécution l'a modifié.
-     */
-
-    if ($addChanged && file_exists($addFile)) {
-        if (@unlink($addFile)) {
-            corePatchLog("info", "cmd.human.insert.ajax.php supprimé");
-        } else {
-            corePatchLog("error", "Impossible de supprimer cmd.human.insert.ajax.php");
-        }
+    foreach ($tempFiles as $temp) {
+        @unlink($temp);
     }
-
-    /*
-     * Nettoyage
-     */
-
-    @unlink($tempReplace);
-    @unlink($tempAdd);
 
     corePatchLog("error", "Rollback terminé");
-
     throw $e;
 }
