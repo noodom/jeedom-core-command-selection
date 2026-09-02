@@ -245,6 +245,7 @@ if (!isConnect()) {
 .miller-item .miller-item-name {
     min-width: 0;
     overflow: hidden;
+    padding-left: calc(var(--miller-level, 0) * 18px);
     text-overflow: ellipsis;
 }
 
@@ -460,17 +461,7 @@ if (!isConnect()) {
     let equipmentFilterText = '';
     let commandFilterText = '';
 
-    const objectSelectHtml = <?php echo json_encode(jeeObject::getUISelectList()); ?>;
-    const objectOptions = (() => {
-        const select = document.createElement('select');
-        select.innerHTML = objectSelectHtml;
-        return Array.from(select.options)
-            .map(option => ({
-                id: String(option.value || ''),
-                name: option.textContent.trim()
-            }))
-            .sort((a, b) => alphaCompare(a.name, b.name));
-    })();
+    const objectOptions = <?php echo json_encode(jeeObject::getUISelectListDetails()); ?>;
 
     const objectsById = new Map(objectOptions.map(o => [o.id, o]));
     const escapeDiv = document.createElement('div');
@@ -638,8 +629,9 @@ if (!isConnect()) {
             const div = document.createElement('div');
             div.className = `miller-item${selectedObjectId === option.id ? ' selected' : ''}`;
             div.dataset.objectId = option.id;
-            const icon = isNone ? '<i class="fas fa-ban"></i>' : '<i class="far fa-object-group"></i>';
-            div.innerHTML = `<span class="miller-item-name">${icon} ${highlightMatch(option.name, objectFilterText)}</span>`;
+            div.style.setProperty('--miller-level', option.level || 0);
+            const icon = isNone ? '<i class="fas fa-ban"></i>' : option.icon || '<i class="far fa-object-group"></i>';
+            div.innerHTML = `<span class="miller-item-name">` + `${icon} ` + `${highlightMatch(option.name, objectFilterText)}` + `</span>`;
             fragment.appendChild(div);
             updateEllipsisTooltip(div);
         });
@@ -1161,6 +1153,14 @@ if (!isConnect()) {
         return option ? option.name : '';
     }
 
+    function getObjectIcon(objectId) {
+        const object = objectsById.get(String(objectId));
+        if (!object || object.id === '') {
+            return '<i class="fas fa-ban"></i>';
+        }
+        return object.icon || '<i class="far fa-object-group"></i>';
+    }
+
     function updateSelectionSummary() {
         if (!selectionSummary) return;
 
@@ -1189,7 +1189,7 @@ if (!isConnect()) {
         if (selectedObjectId !== null) {
             const objName = getObjectNameById(selectedObjectId);
             if (objName) {
-                parts.push(`${selectedObjectId === '' ? '<i class="fas fa-ban"></i>' : '<i class="far fa-object-group"></i>'} ${escapeHtml(objName)}`);
+                parts.push(`${getObjectIcon(selectedObjectId)} ${escapeHtml(objName)}`);
             }
         }
 
