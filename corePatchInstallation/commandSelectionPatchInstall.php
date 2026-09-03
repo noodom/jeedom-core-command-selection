@@ -1,235 +1,256 @@
-/*
- * Jeedom Core Patch
- *
- * Installation / désinstallation du patch de sélection des commandes humaines.
- *
- * Fichiers :
- * - /desktop/modal/cmd.human.insert.php
- * - /core/ajax/cmd.human.insert.ajax.php
- * - /core/ajax/object.ajax.php
- * - /core/class/jeeObject.class.php
- */
+$scenario->setLog('========================================');
+$scenario->setLog('Installation du patch Core beta');
+$scenario->setLog('========================================');
 
-$action = "installer";
-// $action = "desinstaller";
+$baseUrl = 'https://raw.githubusercontent.com/noodom/jeedom-core-command-selection/refs/heads/beta';
+$corePath = __DIR__ . '/../../';
+$backupSuffix = '.corePatchInstallation.bak';
 
-$files = [
-    [
-        "url" => "https://raw.githubusercontent.com/noodom/jeedom-core-command-selection/refs/heads/beta/desktop/modal/cmd.human.insert.php",
-        "file" => "/var/www/html/desktop/modal/cmd.human.insert.php",
-        "backup" => "/var/www/html/desktop/modal/cmd.human.insert.php.corepatch-backup",
-        "name" => "cmd.human.insert.php",
-        "replace" => true
-    ],
-    [
-        "url" => "https://raw.githubusercontent.com/noodom/jeedom-core-command-selection/refs/heads/beta/core/ajax/cmd.human.insert.ajax.php",
-        "file" => "/var/www/html/core/ajax/cmd.human.insert.ajax.php",
-        "name" => "cmd.human.insert.ajax.php",
-        "replace" => false
-    ],
-    [
-        "url" => "https://raw.githubusercontent.com/noodom/jeedom-core-command-selection/refs/heads/beta/core/ajax/object.ajax.php",
-        "file" => "/var/www/html/core/ajax/object.ajax.php",
-        "backup" => "/var/www/html/core/ajax/object.ajax.php.corepatch-backup",
-        "name" => "object.ajax.php",
-        "replace" => true
-    ],
-    [
-        "url" => "https://raw.githubusercontent.com/noodom/jeedom-core-command-selection/refs/heads/beta/core/class/jeeObject.class.php",
-        "file" => "/var/www/html/core/class/jeeObject.class.php",
-        "backup" => "/var/www/html/core/class/jeeObject.class.php.corepatch-backup",
-        "name" => "jeeObject.class.php",
-        "replace" => true
-    ]
-];
+$replaceFiles = array(
+	'cmd.human.insert.php' => array(
+		'url' => $baseUrl . '/desktop/modal/cmd.human.insert.php',
+		'path' => $corePath . 'desktop/modal/cmd.human.insert.php'
+	)
+);
 
-function corePatchLog($level, $message) {
-    global $scenario;
-    $scenario->setLog('[' . $level . '] ' . $message);
-}
+$addFiles = array(
+	'cmd.human.insert.ajax.php' => array(
+		'url' => $baseUrl . '/core/ajax/cmd.human.insert.ajax.php',
+		'path' => $corePath . 'core/ajax/cmd.human.insert.ajax.php'
+	)
+);
 
-function corePatchDownload($url, $target) {
-    $context = stream_context_create(["http" => ["timeout" => 30, "user_agent" => "Jeedom-Core-Patch", "follow_location" => true]]);
-    $content = @file_get_contents($url, false, $context);
-    if ($content === false || trim($content) === "") {
-        throw new Exception("Téléchargement impossible : " . $url);
-    }
-    if (@file_put_contents($target, $content) === false) {
-        throw new Exception("Impossible d'écrire le fichier temporaire : " . $target);
-    }
-}
+$patches = array(
+	'object.ajax.php' => array(
+		'path' => $corePath . 'core/ajax/object.ajax.php',
+		'check' => "if (init('action') == 'getUISelectListDetails') {",
+		'anchor' => "if (init('action') == 'getSummaryHtml') {",
+		'insert' => <<<'PHP'
+	if (init('action') == 'getUISelectListDetails') {
+		if (!isConnect('admin')) {
+			throw new Exception(__('401 - Accès non autorisé', __FILE__));
+		}
+		ajax::success(jeeObject::getUISelectListDetails(init('none')));
+	}
 
-function corePatchCheckPhp($file) {
-    $output = [];
-    $returnCode = 0;
-    exec("php -l " . escapeshellarg($file) . " 2>&1", $output, $returnCode);
-    if ($returnCode !== 0) {
-        throw new Exception("Syntaxe PHP invalide : " . implode(" ", $output));
-    }
-}
+PHP
+	),
+	'jeeObject.class.php' => array(
+		'path' => $corePath . 'core/class/jeeObject.class.php',
+		'check' => 'public static function getUISelectListDetails(',
+		'anchor' => 'public static function fullData(',
+		'insert' => <<<'PHP'
+	public static function getUISelectListDetails($_none = true) {
+		$allObject = self::buildTree(null, false);
+		$objects = array();
 
-function corePatchSetPermissions($file) {
-    @chown($file, "www-data");
-    @chgrp($file, "www-data");
-    @chmod($file, 0644);
-}
+		if ($_none) {
+			$objects[] = array(
+				'id' => '',
+				'name' => __('Aucun', __FILE__),
+				'level' => 0,
+				'icon' => ''
+			);
+		}
 
-if (!in_array($action, ["installer", "desinstaller"], true)) {
-    throw new Exception("Action invalide : utiliser installer ou desinstaller");
-}
+		foreach ($allObject as $object) {
+			$objects[] = array(
+				'id' => (string) $object->getId(),
+				'name' => $object->getName(),
+				'level' => (int) $object->getConfiguration('parentNumber', 0),
+				'icon' => $object->getDisplay('icon')
+			);
+		}
 
-/*
- * DESINSTALLATION
- */
-if ($action === "desinstaller") {
-    corePatchLog("info", "========================================");
-    corePatchLog("info", "Désinstallation du patch Core");
-    corePatchLog("info", "========================================");
+		return $objects;
+	}
 
-    foreach ($files as $item) {
-        if (!empty($item["replace"])) {
-            if (file_exists($item["backup"])) {
-                corePatchLog("info", "Backup trouvé : restauration de " . $item["name"]);
-                if (!@copy($item["backup"], $item["file"])) {
-                    throw new Exception("Impossible de restaurer " . $item["file"]);
-                }
-                corePatchSetPermissions($item["file"]);
-                corePatchCheckPhp($item["file"]);
-                if (!@unlink($item["backup"])) {
-                    throw new Exception("Impossible de supprimer le backup " . $item["backup"]);
-                }
-                corePatchLog("info", $item["name"] . " restauré avec succès");
-            } else {
-                corePatchLog("info", "Aucun backup trouvé pour " . $item["name"] . " : aucune restauration effectuée");
-            }
-        }
-    }
+PHP
+	)
+);
 
-    $ajaxFile = $files[1]["file"];
-    if (file_exists($ajaxFile)) {
-        corePatchLog("info", "cmd.human.insert.ajax.php trouvé : suppression");
-        if (!@unlink($ajaxFile)) {
-            throw new Exception("Impossible de supprimer " . $ajaxFile);
-        }
-        corePatchLog("info", "cmd.human.insert.ajax.php supprimé avec succès");
-    } else {
-        corePatchLog("info", "cmd.human.insert.ajax.php déjà absent");
-    }
-
-    corePatchLog("info", "========================================");
-    corePatchLog("info", "Désinstallation terminée");
-    corePatchLog("info", "========================================");
-    return;
-}
-
-/*
- * INSTALLATION
- */
-corePatchLog("info", "========================================");
-corePatchLog("info", "Installation du patch Core beta");
-corePatchLog("info", "========================================");
-
-$tempFiles = [];
-$changedFiles = [];
+$modifiedFiles = array();
+$createdFiles = array();
+$backupsCreated = array();
+$tmpFiles = array();
 
 try {
-    foreach ($files as $index => $item) {
-        $temp = sys_get_temp_dir() . "/jeedom-core-patch-" . $item["name"];
-        $tempFiles[$index] = $temp;
+	$validatePhp = function($path) {
+		exec('php -l ' . escapeshellarg($path) . ' 2>&1', $output, $code);
+		if ($code !== 0) {
+			throw new Exception('Erreur PHP dans ' . $path . ' : ' . implode("\n", $output));
+		}
+	};
 
-        corePatchLog("info", "Téléchargement de " . $item["name"]);
-        corePatchDownload($item["url"], $temp);
-        corePatchCheckPhp($temp);
-        corePatchLog("info", $item["name"] . " téléchargé et valide");
+	$backup = function($path, $name) use (&$backupsCreated, $backupSuffix, $scenario) {
+		$file = $path . $backupSuffix;
+		if (file_exists($file)) {
+			return;
+		}
+		if (!copy($path, $file)) {
+			throw new Exception('Impossible de créer le backup de ' . $name);
+		}
+		$backupsCreated[] = $file;
+		$scenario->setLog('[info] Backup créé : ' . $name);
+	};
 
-        if (!file_exists($item["file"]) && !empty($item["replace"])) {
-            throw new Exception("Fichier Core introuvable : " . $item["file"]);
-        }
-    }
+	$download = function($url, $path) use (&$tmpFiles, $validatePhp) {
+		$tmp = $path . '.corePatchInstallation.tmp';
+		$data = @file_get_contents($url);
 
-    foreach ($files as $index => $item) {
-        $temp = $tempFiles[$index];
+		if ($data === false || $data === '') {
+			throw new Exception('Téléchargement impossible : ' . $url);
+		}
 
-        if (!empty($item["replace"])) {
-            $alreadyInstalled = md5_file($item["file"]) === md5_file($temp);
+		if (file_put_contents($tmp, $data) === false) {
+			throw new Exception('Impossible d\'écrire : ' . $tmp);
+		}
 
-            if ($alreadyInstalled) {
-                corePatchLog("info", $item["name"] . " déjà installé");
-                continue;
-            }
+		$tmpFiles[] = $tmp;
+		$validatePhp($tmp);
 
-            if (!file_exists($item["backup"])) {
-                corePatchLog("info", "Création du backup de " . $item["name"]);
-                if (!@copy($item["file"], $item["backup"])) {
-                    throw new Exception("Impossible de créer le backup de " . $item["name"]);
-                }
-                corePatchSetPermissions($item["backup"]);
-                corePatchLog("info", "Backup créé");
-            } else {
-                corePatchLog("info", "Backup déjà présent : conservation du backup existant");
-            }
+		return $tmp;
+	};
 
-            corePatchLog("info", "Remplacement de " . $item["name"]);
-            if (!@copy($temp, $item["file"])) {
-                throw new Exception("Impossible de remplacer " . $item["file"]);
-            }
-            corePatchSetPermissions($item["file"]);
-            corePatchCheckPhp($item["file"]);
-            $changedFiles[] = $index;
-            corePatchLog("info", $item["name"] . " remplacé avec succès");
-        } else {
-            $alreadyInstalled = file_exists($item["file"]) && md5_file($item["file"]) === md5_file($temp);
+	/* Téléchargement */
+	foreach (array_merge($replaceFiles, $addFiles) as $name => $file) {
+		$scenario->setLog('[info] Téléchargement de ' . $name);
+		$download($file['url'], $file['path']);
+		$scenario->setLog('[info] ' . $name . ' téléchargé et valide');
+	}
 
-            if ($alreadyInstalled) {
-                corePatchLog("info", $item["name"] . " déjà installé");
-                continue;
-            }
+	/* Remplacements */
+	foreach ($replaceFiles as $name => $file) {
+		$path = $file['path'];
+		$tmp = $path . '.corePatchInstallation.tmp';
 
-            corePatchLog("info", file_exists($item["file"]) ? $item["name"] . " existe déjà : remplacement" : "Création de " . $item["name"]);
-            if (!@copy($temp, $item["file"])) {
-                throw new Exception("Impossible d'installer " . $item["file"]);
-            }
-            corePatchSetPermissions($item["file"]);
-            corePatchCheckPhp($item["file"]);
-            $changedFiles[] = $index;
-            corePatchLog("info", $item["name"] . " installé avec succès");
-        }
-    }
+		if (!file_exists($path)) {
+			throw new Exception('Fichier introuvable : ' . $path);
+		}
 
-    foreach ($tempFiles as $temp) {
-        @unlink($temp);
-    }
+		if (md5_file($path) === md5_file($tmp)) {
+			$scenario->setLog('[info] ' . $name . ' déjà à jour');
+			continue;
+		}
 
-    corePatchLog("info", "========================================");
-    corePatchLog("info", "Patch Core beta installé avec succès");
-    corePatchLog("info", "========================================");
+		$backup($path, $name);
+
+		if (!copy($tmp, $path)) {
+			throw new Exception('Impossible de remplacer ' . $name);
+		}
+
+		$modifiedFiles[] = $path;
+		$validatePhp($path);
+		$scenario->setLog('[info] ' . $name . ' remplacé');
+	}
+
+	/* Ajout / mise à jour */
+	foreach ($addFiles as $name => $file) {
+		$path = $file['path'];
+		$tmp = $path . '.corePatchInstallation.tmp';
+
+		if (file_exists($path)) {
+			if (md5_file($path) === md5_file($tmp)) {
+				$scenario->setLog('[info] ' . $name . ' déjà à jour');
+				continue;
+			}
+
+			$backup($path, $name);
+
+			if (!copy($tmp, $path)) {
+				throw new Exception('Impossible de mettre à jour ' . $name);
+			}
+
+			$modifiedFiles[] = $path;
+		} else {
+			if (!copy($tmp, $path)) {
+				throw new Exception('Impossible d\'installer ' . $name);
+			}
+
+			$createdFiles[] = $path;
+		}
+
+		$validatePhp($path);
+		$scenario->setLog('[info] ' . $name . ' installé');
+	}
+
+	/* Patches ciblés */
+	foreach ($patches as $name => $patch) {
+		$path = $patch['path'];
+
+		if (!file_exists($path)) {
+			throw new Exception('Fichier introuvable : ' . $path);
+		}
+
+		$content = file_get_contents($path);
+
+		if (strpos($content, $patch['check']) !== false) {
+			$scenario->setLog('[info] ' . $name . ' : patch déjà présent');
+			continue;
+		}
+
+		if (strpos($content, $patch['anchor']) === false) {
+			throw new Exception('Ancre introuvable dans ' . $path);
+		}
+
+		if ($name === 'object.ajax.php' && strpos($content, "if (init('action') == 'getUISelectList') {") === false) {
+			throw new Exception('Action getUISelectList introuvable dans ' . $path);
+		}
+
+		if ($name === 'jeeObject.class.php' && strpos($content, 'public static function getUISelectList(') === false) {
+			throw new Exception('Méthode getUISelectList introuvable dans ' . $path);
+		}
+
+		$backup($path, $name);
+
+		$pos = strpos($content, $patch['anchor']);
+		$content = substr($content, 0, $pos) . $patch['insert'] . substr($content, $pos);
+
+		if (file_put_contents($path, $content) === false) {
+			throw new Exception('Impossible d\'écrire ' . $path);
+		}
+
+		$modifiedFiles[] = $path;
+		$validatePhp($path);
+		$scenario->setLog('[info] Patch appliqué : ' . $name);
+	}
+
+	/* Validation finale */
+	foreach (array_merge($replaceFiles, $addFiles, $patches) as $file) {
+		$validatePhp($file['path']);
+	}
+
+	foreach ($tmpFiles as $tmp) {
+		@unlink($tmp);
+	}
+
+	$scenario->setLog('========================================');
+	$scenario->setLog('Installation du patch Core beta terminée');
+	$scenario->setLog('========================================');
+
 } catch (Exception $e) {
-    corePatchLog("error", "Erreur : " . $e->getMessage());
-    corePatchLog("error", "Rollback automatique en cours");
+	$scenario->setLog('[error] ' . $e->getMessage());
+	$scenario->setLog('[error] Rollback automatique en cours');
 
-    foreach ($changedFiles as $index) {
-        $item = $files[$index];
+	foreach ($tmpFiles as $tmp) {
+		@unlink($tmp);
+	}
 
-        if (!empty($item["replace"])) {
-            if (file_exists($item["backup"]) && @copy($item["backup"], $item["file"])) {
-                corePatchSetPermissions($item["file"]);
-                corePatchLog("info", $item["name"] . " restauré");
-            } else {
-                corePatchLog("error", "Impossible de restaurer " . $item["name"]);
-            }
-        } elseif (file_exists($item["file"])) {
-            if (@unlink($item["file"])) {
-                corePatchLog("info", $item["name"] . " supprimé");
-            } else {
-                corePatchLog("error", "Impossible de supprimer " . $item["name"]);
-            }
-        }
-    }
+	foreach (array_reverse($modifiedFiles) as $path) {
+		$bak = $path . $backupSuffix;
+		if (file_exists($bak) && copy($bak, $path)) {
+			$scenario->setLog('[info] Restauré : ' . basename($path));
+		}
+	}
 
-    foreach ($tempFiles as $temp) {
-        @unlink($temp);
-    }
+	foreach (array_reverse($createdFiles) as $path) {
+		if (file_exists($path)) {
+			@unlink($path);
+			$scenario->setLog('[info] Supprimé : ' . basename($path));
+		}
+	}
 
-    corePatchLog("error", "Rollback terminé");
-    throw $e;
+	$scenario->setLog('[error] Rollback terminé');
+
+	throw $e;
 }
