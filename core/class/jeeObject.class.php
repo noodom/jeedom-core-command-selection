@@ -229,24 +229,24 @@ class jeeObject {
 
     public static function getUISelectListDetails($_none = true) {
         $allObject = self::buildTree(null, false);
-        $objects = [];
+        $objects = array();
 
         if ($_none) {
-            $objects[] = [
+            $objects[] = array(
                 'id' => '',
                 'name' => __('Aucun', __FILE__),
                 'level' => 0,
                 'icon' => ''
-            ];
+            );
         }
 
         foreach ($allObject as $object) {
-            $objects[] = [
+            $objects[] = array(
                 'id' => (string) $object->getId(),
                 'name' => $object->getName(),
                 'level' => (int) $object->getConfiguration('parentNumber', 0),
                 'icon' => $object->getDisplay('icon')
-            ];
+            );
         }
 
         return $objects;
