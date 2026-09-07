@@ -243,6 +243,7 @@ if (!isConnect()) {
 }
 
 .miller-item .miller-item-name {
+    flex: 1;
     min-width: 0;
     overflow: hidden;
     padding-left: calc(var(--miller-level, 0) * 18px);
@@ -365,10 +366,11 @@ if (!isConnect()) {
 }
 
 .miller-item-status-active, .miller-item-status-disabled {
-    font-size: 8px;
+    flex: 0 0 auto;
     margin-left: 6px;
+    font-size: 8px;
     opacity: 0.5;
-    color:var(--al-success-color);
+    color: var(--al-success-color);
 }
 
 .miller-item-status-disabled {
@@ -782,8 +784,8 @@ if (!isConnect()) {
                 <span class="miller-item-name">
                     ${iconHtml}
                     ${highlightMatch(String(eqLogic.name || ''), equipmentFilterText)}
-                    ${statusIcon}
                 </span>
+                ${statusIcon}
             `;
 
             fragment.appendChild(div);
