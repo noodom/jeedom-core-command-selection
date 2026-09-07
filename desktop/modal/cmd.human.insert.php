@@ -349,6 +349,31 @@ if (!isConnect()) {
     font-size: 10px;
     opacity: 0.8;
 }
+                           
+.miller-item-plugin-icon {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+.miller-item-plugin-fallback {
+    width: 18px;
+    margin-right: 6px;
+    text-align: center;
+}
+
+.miller-item-status-active, .miller-item-status-disabled {
+    font-size: 8px;
+    margin-left: 6px;
+    opacity: 0.5;
+    color:var(--al-success-color);
+}
+
+.miller-item-status-disabled {
+    color:var(--al-danger-color);
+}
 </style>
 
 <div id="div_cmdHumanInsert" class="miller-picker-container">
@@ -737,10 +762,30 @@ if (!isConnect()) {
 
         visibleEqLogics.forEach(eqLogic => {
             const eqId = String(eqLogic.id);
+            const pluginId = String(eqLogic.eqType_name || '');
+            const isEnabled = eqLogic.isEnable == 1;
             const div = document.createElement('div');
             div.className = `miller-item${selectedEqLogicId === eqId ? ' selected' : ''}`;
             div.dataset.eqId = eqId;
-            div.innerHTML = `<span class="miller-item-name"><i class="fas fa-puzzle-piece"></i> ${highlightMatch(String(eqLogic.name || ''), equipmentFilterText)}</span>`;
+            div.dataset.pluginId = pluginId;
+
+            const pluginIcon = pluginId ? `/plugins/${pluginId}/plugin_info/${pluginId}_icon.png` : '';
+            const iconHtml = pluginIcon
+                ? `<img class="miller-item-plugin-icon" src="${pluginIcon}" alt="" title="${pluginId}" onerror="this.style.display='none'">`
+                : '<i class="fas fa-puzzle-piece miller-item-plugin-fallback"></i>';
+
+            const statusIcon = isEnabled
+                ? '<i class="fas fa-circle miller-item-status-active" title="{{Actif}}"></i>'
+                : '<i class="fas fa-circle miller-item-status-disabled" title="{{Inactif}}"></i>';
+
+            div.innerHTML = `
+                <span class="miller-item-name">
+                    ${iconHtml}
+                    ${highlightMatch(String(eqLogic.name || ''), equipmentFilterText)}
+                    ${statusIcon}
+                </span>
+            `;
+
             fragment.appendChild(div);
             updateEllipsisTooltip(div);
         });
