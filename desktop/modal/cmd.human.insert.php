@@ -553,8 +553,10 @@ if (!isConnect()) {
             }
         });
 
-        renderObjects();
-        updateSelectionSummary();
+        loadPluginIconCache(function () {
+            renderObjects();
+            updateSelectionSummary();
+        });
     };
 
     mod_insertCmd.getCmdId = function () {
@@ -707,6 +709,63 @@ if (!isConnect()) {
         });
     }
 
+  	let pluginIconCache = null;
+    let pluginIconHtmlCache = null;
+    let pluginIconCacheCallbacks = null;
+
+    function loadPluginIconCache(callback) {
+        if (pluginIconCache) {
+            callback();
+            return;
+        }
+
+        if (pluginIconCacheCallbacks) {
+            pluginIconCacheCallbacks.push(callback);
+            return;
+        }
+
+        pluginIconCacheCallbacks = [callback];
+
+        domUtils.ajax({
+            type: 'POST',
+            url: 'core/ajax/cmd.human.insert.ajax.php',
+            data: { action: 'listIcon' },
+            dataType: 'json',
+            global: false,
+            error: function () {
+                pluginIconCache = new Map();
+                pluginIconHtmlCache = new Map();
+
+                const callbacks = pluginIconCacheCallbacks;
+                pluginIconCacheCallbacks = null;
+                callbacks.forEach(cb => cb());
+            },
+            success: function (data) {
+                const result = data?.result ?? {};
+
+                pluginIconCache = new Map(Object.entries(result));
+                pluginIconHtmlCache = new Map();
+
+                const callbacks = pluginIconCacheCallbacks;
+                pluginIconCacheCallbacks = null;
+                callbacks.forEach(cb => cb());
+            }
+        });
+    }
+
+    function getIconHtml(pluginId) {
+        if (!pluginIconHtmlCache.has(pluginId)) {
+            const iconPath = pluginIconCache.get(pluginId);
+            const html = iconPath
+                ? `<img class="miller-item-plugin-icon" src="/${iconPath}" alt="" title="${pluginId}">`
+                : '<i class="fas fa-puzzle-piece miller-item-plugin-fallback"></i>';
+
+            pluginIconHtmlCache.set(pluginId, html);
+        }
+
+        return pluginIconHtmlCache.get(pluginId);
+    }
+
     function loadEquipments(objectId, restoreSelection) {
         equipmentList.innerHTML = '<div class="miller-empty">{{Chargement...}}</div>';
         commandList.innerHTML = '';
@@ -770,31 +829,22 @@ if (!isConnect()) {
             div.className = `miller-item${selectedEqLogicId === eqId ? ' selected' : ''}`;
             div.dataset.eqId = eqId;
             div.dataset.pluginId = pluginId;
-
-            const pluginIcon = pluginId ? `/plugins/${pluginId}/plugin_info/${pluginId}_icon.png` : '';
-            const iconHtml = pluginIcon
-                ? `<img class="miller-item-plugin-icon" src="${pluginIcon}" alt="" title="${pluginId}" onerror="this.style.display='none'">`
-                : '<i class="fas fa-puzzle-piece miller-item-plugin-fallback"></i>';
-
             const statusIcon = isEnabled
                 ? '<i class="fas fa-circle miller-item-status-active" title="{{Actif}}"></i>'
                 : '<i class="fas fa-circle miller-item-status-disabled" title="{{Inactif}}"></i>';
-
             div.innerHTML = `
                 <span class="miller-item-name">
-                    ${iconHtml}
+                    ${getIconHtml(pluginId)}
                     ${highlightMatch(String(eqLogic.name || ''), equipmentFilterText)}
                 </span>
                 ${statusIcon}
             `;
-
             fragment.appendChild(div);
-            updateEllipsisTooltip(div);
         });
-
         equipmentList.appendChild(fragment);
+        equipmentList.querySelectorAll('.miller-item').forEach(updateEllipsisTooltip);
     }
-
+  
     function selectEquipment(eqId) {
         selectedEqLogicId = eqId;
         mod_insertCmd.options.eqLogic.id = eqId;
@@ -1274,8 +1324,11 @@ if (!isConnect()) {
         return `${escapeHtml(before)}<strong class="miller-match">${escapeHtml(match)}</strong>${escapeHtml(after)}`;
     }
 
-    renderObjects();
-    updateSelectionSummary();
+	loadPluginIconCache(function () {
+        renderObjects();
+        updateSelectionSummary();
+    });
+	updateSelectionSummary();
     updateClearButton(searchInput);
     updateClearButton(objectFilterInput);
     updateClearButton(equipmentFilterInput);

@@ -104,23 +104,11 @@ try {
         ajax::success($result);
     }
 
-    if ($action == 'getEqLogicsWithoutObject') {
-        $result = [];
-        foreach (eqLogic::all() as $eqLogic) {
-            if ($eqLogic->getObject_id() === null) {
-                $result[] = [
-                    'id' => $eqLogic->getId(),
-                    'name' => $eqLogic->getName(),
-                    'logicalId' => $eqLogic->getLogicalId(),
-                    'eqType_name' => $eqLogic->getEqType_name()
-                ];
-            }
+    if (init('action') == 'listIcon') {
+        $result = array();
+        foreach (plugin::listPlugin(false, false, false) as $plugin) {
+            $result[$plugin->getId()] = $plugin->getPathImgIcon();
         }
-
-        usort($result, function ($a, $b) {
-            return strcasecmp($a['name'], $b['name']);
-        });
-
         ajax::success($result);
     }
 
